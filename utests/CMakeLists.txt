@@ -26,7 +26,12 @@ set(UTESTS
 # boost unit test for use by the CMake CTest system.
 # 
 foreach(uexec ${UTESTS})
-  add_executable(${uexec} ${uexec}.cpp)
+  add_executable(${uexec} ${uexec}.cpp
+          ../GraphicsLib/vec3.h
+          vec3_tests.cpp
+          ../graphicsLib/Framebuffer.h
+          ../graphicsLib/Framebuffer.cpp
+  )
   target_link_libraries(${uexec} PRIVATE Catch2::Catch2WithMain)
   target_link_libraries(${uexec} PRIVATE cs4212-util)
 

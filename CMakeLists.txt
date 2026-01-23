@@ -41,12 +41,15 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+
 # --------------------------------------------------------------------
 # PNG and ZLIB
 #
 # This macro will attempt to locate the PNG include directories, link directories and libraries. The INCLUDE_DIRECTORIES
 # macro adds the resulting include directories to the search path.
 # --------------------------------------------------------------------
+add_compile_definitions(PNG_BYTE_ORDER=1234)
+
 FIND_PACKAGE(PNG REQUIRED)
 if(NOT PNG_FOUND)
   message(STATUS "Could not find the PNG Libraries!")
@@ -92,7 +95,9 @@ add_subdirectory(examples)
 
 #
 # Renderer code
-#
+
+#add_subdirectory(graphicsLib)
+
 # Create your rendering library here....
 
 
