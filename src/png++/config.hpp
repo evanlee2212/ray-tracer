@@ -54,7 +54,14 @@
 
 #else
 
-#error Byte-order could not be detected.
+#if defined(_WIN32)
+    #define __LITTLE_ENDIAN 1234
+    #define __BIG_ENDIAN    4321
+    #define __BYTE_ORDER    __LITTLE_ENDIAN
+    #define PNG_BYTE_ORDER  __LITTLE_ENDIAN
+#else
+    #error Byte-order could not be detected.
+#endif
 
 #endif
 

@@ -4,11 +4,18 @@
 # utest directory to correctly include the relative reference to the
 # src files.
 #
+
 include_directories(${CMAKE_SOURCE_DIR}/src)
 
 add_executable(test_pngWrite
   test_pngWrite.cpp
 )
+
+target_compile_definitions(test_pngWrite PRIVATE
+        __BYTE_ORDER=1234
+        __LITTLE_ENDIAN=1234
+)
+
 target_link_libraries(test_pngWrite cs4212-util)
 target_link_libraries(test_pngWrite ${Boost_PROGRAM_OPTIONS_LIBRARIES})
 target_link_libraries(test_pngWrite PNG::PNG)

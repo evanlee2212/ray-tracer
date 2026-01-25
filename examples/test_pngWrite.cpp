@@ -28,6 +28,8 @@
 #include "png++/png.hpp"
 #include "handleGraphicsArgs.h"
 
+#include <filesystem>
+
 int main(int argc, char *argv[])
 {
     // pseudo-random generation classes in C++
@@ -138,6 +140,8 @@ int main(int argc, char *argv[])
         imData[y][x] = png::rgb_pixel( c[0], c[1], c[2] );
     }
     imData.write( "checkerboard.png" );
+
+    std::cout << std::filesystem::current_path() << std::endl;
 
     exit(EXIT_SUCCESS);
 }

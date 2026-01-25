@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.22)
 
+set(VCPKG_TARGET_TRIPLET x64-mingw-static)
+
 project(cs4212StarterCode
   VERSION 1.0
   LANGUAGES CXX)
@@ -48,7 +50,6 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # This macro will attempt to locate the PNG include directories, link directories and libraries. The INCLUDE_DIRECTORIES
 # macro adds the resulting include directories to the search path.
 # --------------------------------------------------------------------
-add_compile_definitions(PNG_BYTE_ORDER=1234)
 
 FIND_PACKAGE(PNG REQUIRED)
 if(NOT PNG_FOUND)
