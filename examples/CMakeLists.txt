@@ -29,4 +29,22 @@ target_link_libraries(test_readPNGFile ${Boost_PROGRAM_OPTIONS_LIBRARIES})
 target_link_libraries(test_readPNGFile PNG::PNG)
 target_link_libraries(test_readPNGFile ZLIB::ZLIB)
 
+find_package(PNG REQUIRED)
+find_package(ZLIB REQUIRED)
+
+add_library(graphicsLib
+        ../graphicsLib/Framebuffer.cpp
+)
+
+target_link_libraries(graphicsLib PUBLIC PNG::PNG ZLIB::ZLIB)
+
+add_executable(fb.cpp fb.cpp)
+
+target_link_libraries(fb.cpp
+        PRIVATE
+        graphicsLib
+        cs4212-util
+        ${Boost_PROGRAM_OPTIONS_LIBRARIES}
+)
+
 

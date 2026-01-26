@@ -31,6 +31,7 @@ foreach(uexec ${UTESTS})
           vec3_tests.cpp
           ../graphicsLib/Framebuffer.h
           ../graphicsLib/Framebuffer.cpp
+          ../examples/fb.cpp
   )
   target_link_libraries(${uexec} PRIVATE Catch2::Catch2WithMain)
   target_link_libraries(${uexec} PRIVATE cs4212-util)

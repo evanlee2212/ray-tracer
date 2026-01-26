@@ -1,13 +1,16 @@
 //
 // Created by Evan on 1/22/2026.
 //
-/**
 #ifndef CS4212STARTERCODE_FRAMEBUFFER_H
 #define CS4212STARTERCODE_FRAMEBUFFER_H
 
 #pragma once
 
 #include <vector>
+#include <fstream>
+
+#include "../src/png++/png.hpp"
+#include "../src/handleGraphicsArgs.h"
 
 #include "vec3.h"
 
@@ -33,4 +36,3 @@ private:
 
 
 #endif// CS4212STARTERCODE_FRAMEBUFFER_H
-**/
