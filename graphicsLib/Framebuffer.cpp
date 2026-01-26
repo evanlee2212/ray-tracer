@@ -16,18 +16,20 @@ void Framebuffer::clearToColor(color c) {
 
 void Framebuffer::makeGradient(vec3 t, vec3 b)
 {
-  int total = fbStorage.size();
-
-  for (int i = 0; i < total; i++) {
-    double p = static_cast<double>(i) / (total - 1);  // 0 → 1
-
-    fbStorage[i] = color(
+  for (int y = 0; y < height; y++)
+  {
+    double p = double(y) / (height - 1);
+    color c(
         (1 - p) * t.x() + p * b.x(),
         (1 - p) * t.y() + p * b.y(),
         (1 - p) * t.z() + p * b.z()
     );
+
+    for (int x = 0; x < width; x++)
+      fbStorage[y * width + x] = c;
   }
 }
+
 
 void Framebuffer::setPixelColor(int x, int y, color c)
 {
@@ -48,9 +50,9 @@ void Framebuffer::exportAsPNG(std::string filename)
 
       color c = fbStorage[y * width + x];
 
-      int r = std::clamp(int(c.x() * 255.0), 0, 255);
-      int g = std::clamp(int(c.y() * 255.0), 0, 255);
-      int b = std::clamp(int(c.z() * 255.0), 0, 255);
+      int r = std::clamp(int(c.x()), 0, 255);
+      int g = std::clamp(int(c.y()), 0, 255);
+      int b = std::clamp(int(c.z()), 0, 255);
 
       img[y][x] = png::rgb_pixel(r, g, b);
     }
@@ -58,3 +60,4 @@ void Framebuffer::exportAsPNG(std::string filename)
 
   img.write(filename);
 }
+
