@@ -16,6 +16,11 @@ void Framebuffer::clearToColor(color c) {
 
 void Framebuffer::makeGradient(vec3 t, vec3 b)
 {
+  if (height <= 1) {
+    clearToColor(t);
+    return;
+  }
+
   for (int y = 0; y < height; y++)
   {
     double p = double(y) / (height - 1);
@@ -33,11 +38,13 @@ void Framebuffer::makeGradient(vec3 t, vec3 b)
 
 void Framebuffer::setPixelColor(int x, int y, color c)
 {
+  if (x < 0 || x >= width || y < 0 || y >= height) return;
   fbStorage[y * width + x] = c;
 }
 
 void Framebuffer::setPixelColor(int index, color c)
 {
+  if (index < 0 || index >= (int)fbStorage.size()) return;
   fbStorage[index] = c;
 }
 

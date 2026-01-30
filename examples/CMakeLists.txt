@@ -34,6 +34,10 @@ find_package(ZLIB REQUIRED)
 
 add_library(graphicsLib
         ../graphicsLib/Framebuffer.cpp
+        ../graphicsLib/Framebuffer.h
+        ../graphicsLib/ray.h
+        ../graphicsLib/Camera.h
+        ../graphicsLib/PerspectiveCamera.h
 )
 
 target_link_libraries(graphicsLib PUBLIC PNG::PNG ZLIB::ZLIB)

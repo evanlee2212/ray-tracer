@@ -19,22 +19,22 @@ include(Catch)
 # 
 set(UTESTS 
   utest_Success
-  utest_Failure)
+  utest_Failure
+  ray_tests
+  vec3_tests)
 
 # 
 # For each of the executables named in ${UTESTS}, compile them into a
 # boost unit test for use by the CMake CTest system.
 # 
 foreach(uexec ${UTESTS})
-  add_executable(${uexec} ${uexec}.cpp
-          ../GraphicsLib/vec3.h
-          vec3_tests.cpp
-          ../graphicsLib/Framebuffer.h
-          ../graphicsLib/Framebuffer.cpp
-          ../examples/fb.cpp
+  add_executable(${uexec} ${uexec}.cpp)
+
+  target_link_libraries(${uexec} PRIVATE
+          Catch2::Catch2WithMain
+          cs4212-util
+          graphicsLib
   )
-  target_link_libraries(${uexec} PRIVATE Catch2::Catch2WithMain)
-  target_link_libraries(${uexec} PRIVATE cs4212-util)
 
   add_test(NAME ${uexec} COMMAND ${uexec})
 endforeach(uexec)
