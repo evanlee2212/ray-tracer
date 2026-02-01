@@ -30,6 +30,7 @@ class Camera
 
     float focalLength;
     float imagePlane_width, imagePlane_height;
+    float left_bound, right_bound, top_bound, bottom_bound;
 
     int nx, ny;
 private:
