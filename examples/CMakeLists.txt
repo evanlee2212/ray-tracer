@@ -38,6 +38,8 @@ add_library(graphicsLib
         ../graphicsLib/ray.h
         ../graphicsLib/Camera.h
         ../graphicsLib/PerspectiveCamera.h
+        ../graphicsLib/Shape.h
+        ../graphicsLib/Sphere.h
 )
 
 target_link_libraries(graphicsLib PUBLIC PNG::PNG ZLIB::ZLIB)

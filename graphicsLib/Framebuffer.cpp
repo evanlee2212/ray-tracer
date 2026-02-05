@@ -68,3 +68,13 @@ void Framebuffer::exportAsPNG(std::string filename)
   img.write(filename);
 }
 
+int Framebuffer::getWidth()
+{
+  return width;
+}
+
+int Framebuffer::getHeight()
+{
+  return height;
+}
+

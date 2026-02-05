@@ -4,38 +4,46 @@
 
 #include "../graphicsLib/Framebuffer.h"
 #include "../graphicsLib/PerspectiveCamera.h"
+#include "../graphicsLib/Sphere.h"
 
 int main()
 {
-  Framebuffer fb(100, 100);
+  Framebuffer fb(1000, 1000);
 
-  /**fb.clearToColor(color(0, 255, 255));
-  fb.exportAsPNG("cyan.png");
+  PerspectiveCamera p(fb.getWidth(), fb.getHeight());
 
-  fb.makeGradient(color(255, 0,0), color(0, 0, 255));
-  fb.exportAsPNG("redBlueGrad.png");
-  **/
+  Sphere s(vec3(-1, -1, -3), 0.75);
+  Sphere s2(vec3(1,1,-3), 0.75);
+  Sphere s3(vec3(0,0,-3), 0.5);
 
-  PerspectiveCamera p;
 
-  for (int x = 0; x < 100; ++x) {
-    for (int y = 0; y < 100; ++y) {
-
+  for (int x = 0; x < fb.getWidth(); ++x) {
+    for (int y = 0; y < fb.getHeight(); ++y) {
       ray r;
       p.generateRay(x, y, r);
 
       vec3 d = unit_vector(r.direction());
+      color c;
 
-      color c(
+      if (s.intersect(r) || s2.intersect(r) || s3.intersect(r)) {
+        c = color(
+        (-d.x() + 1.0f) * 0.5f * 255,
+        (-d.y() + 1.0f) * 0.5f * 255,
+        (-d.z() + 1.0f) * 0.5f * 255
+        );
+      } else {
+        c = color(
         (d.x() + 1.0f) * 0.5f * 255,
         (d.y() + 1.0f) * 0.5f * 255,
         (d.z() + 1.0f) * 0.5f * 255
-      );
+        );
+      }
 
-      fb.setPixelColor(x, y, c);
+      fb.setPixelColor(x,y, c);
     }
   }
 
-  fb.exportAsPNG("defaultCamRayColors.png");
+
+  fb.exportAsPNG("sphereTest.png");
   return 0;
 }

@@ -29,6 +29,9 @@ public:
 
   void exportAsPNG(std::string filename);
 
+  int getWidth();
+  int getHeight();
+
 private:
   int width, height;
   std::vector<vec3> fbStorage;

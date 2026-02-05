@@ -11,13 +11,16 @@
 class Camera
 {
   public:
-    Camera() : pos(0,0,0), U(1,0,0), V(0,1,0), W(0,0,1), focalLength(1.0),
-        imagePlane_width(0.25), imagePlane_height(0.25), nx(100), ny(100) {}
+    Camera() : pos(0,0,0), U(1,0,0), V(0,1,0), W(0,0,-1), focalLength(0.5),
+        imagePlane_width(0.5), imagePlane_height(0.5), nx(100), ny(100) {}
 
-    Camera(int pixel_nx, int pixel_ny) : pos(0,0,0), U(1,0,0), V(0,1,0), W(0,0,1), focalLength(1.0),
+    Camera(int pixel_nx, int pixel_ny) : pos(0,0,0), U(1,0,0), V(0,1,0), W(0,0,-1), focalLength(0.5),
         imagePlane_width(0.25), imagePlane_height(0.25), nx(pixel_nx), ny(pixel_ny) {}
 
     virtual ~Camera() {}
+
+    void moveTo(point3 e) { pos = e; }
+    void lookAt(vec3 d) { W = d; }
 
 
     //Camera needs to know pixel image dimensions
