@@ -2,6 +2,7 @@
 // Created by Evan on 1/26/2026.
 //
 
+#include "../graphicsLib/BlinnPhongShader.h"
 #include "../graphicsLib/Framebuffer.h"
 #include "../graphicsLib/LambertianShader.h"
 #include "../graphicsLib/PerspectiveCamera.h"
@@ -19,13 +20,14 @@ int main()
     auto lambertianRed   = std::make_shared<LambertianShader>();
     auto lambertianGreen = std::make_shared<LambertianShader>();
     auto lambertianBlue  = std::make_shared<LambertianShader>();
+    auto blinnPhong = std::make_shared<BlinnPhongShader>();
 
     std::vector<std::shared_ptr<Shape>> shapes;
 
     shapes.push_back(std::make_shared<Triangle>(
-        point3(-1.2, -0.2, -7),
-        point3(0.8, -0.5, -5),
-        point3(0.9, 0, -5),
+      point3(0.9, 0, -5),
+      point3(0.8, -0.5, -5),
+      point3(-1.2, -0.2, -7),
         lambertianRed,
         color(255, 0, 0)
     ));
@@ -40,8 +42,8 @@ int main()
 
     shapes.push_back(std::make_shared<Triangle>(
         point3(-0.45, -0.779423, -5),
-        point3(0.426795, 1.13923, -7),
         point3(-0.833013, -0.44282, -5),
+        point3(0.426795, 1.13923, -7),
         lambertianBlue,
         color(0, 0, 255)
     ));
@@ -52,6 +54,12 @@ int main()
       lambertianRed,
       color(255, 0, 0)
   ));
+
+  shapes.push_back(std::make_shared<Sphere>(
+    point3(0, 0, -5),
+    0.25f,
+    blinnPhong,
+    color(100, 100, 100)));
 
   for (int x = 0; x < fb.getWidth(); ++x) {
     for (int y = 0; y < fb.getHeight(); ++y) {
@@ -68,6 +76,7 @@ int main()
           t_closest = t_hit;
           closestHit = tempHit;
           closestHit.hitShape = s;
+          closestHit.r = r;
         }
       }
 

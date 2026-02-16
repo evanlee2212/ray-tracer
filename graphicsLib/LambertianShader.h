@@ -8,17 +8,14 @@
 #include "Shader.h"
 
 class LambertianShader : public Shader {
-private:
-  color baseColor;
 
 public:
-  LambertianShader() : baseColor(255, 255, 255) {};
-  LambertianShader(color baseColor) : baseColor(baseColor) {};
+  LambertianShader() {};
 
   color rayColor(const hitStructure &h)
   {
     color lightIntensity(255, 255, 255);
-    point3 lightPos(0, 50, 0);
+    point3 lightPos(0, -50, 0);
 
     float kd = 1.0f;
     vec3 dirToLight = unit_vector(lightPos - h.point);

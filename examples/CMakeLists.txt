@@ -44,6 +44,7 @@ add_library(graphicsLib
         ../graphicsLib/Shader.h
         ../graphicsLib/LambertianShader.h
         ../graphicsLib/HitStructure.h
+        ../graphicsLib/BlinnPhongShader.h
 )
 
 target_link_libraries(graphicsLib PUBLIC PNG::PNG ZLIB::ZLIB)

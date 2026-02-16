@@ -7,6 +7,7 @@
 
 #include "vec3.h"
 #include "Shader.h"
+#include "ray.h"
 
 #include <memory>
 
@@ -20,6 +21,7 @@ struct hitStructure
   std::shared_ptr<Shape> hitShape = nullptr;
   std::shared_ptr<Shader> shader = nullptr;
   color color;
+  ray r;
 };
 
 #endif// CS4212STARTERCODE_HITSTRUCTURE_H
