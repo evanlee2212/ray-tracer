@@ -12,12 +12,20 @@ class Triangle : public Shape
 {
   private:
     point3 vertex_a, vertex_b, vertex_c;
+    std::shared_ptr<Shader> shader;
+    color _color;
 
   public:
-  Triangle() : vertex_a(point3(1,0,0)), vertex_b(point3(0, 1, 0)), vertex_c(point3(0, 0, 1)) {};
-  Triangle(point3 a, point3 b, point3 c) : vertex_a(a), vertex_b(b), vertex_c(c) {};
+  Triangle() : vertex_a(point3(1,0,0)), vertex_b(point3(0, 1, 0)), vertex_c(point3(0, 0, 1)),
+                shader(std::make_shared<LambertianShader>()), _color(0,0,0) {};
 
-  bool intersect(const ray &r, const float tmin, float &tmax) override
+  Triangle(point3 a, point3 b, point3 c) : vertex_a(a), vertex_b(b), vertex_c(c),
+            shader(std::make_shared<LambertianShader>()) {};
+
+  Triangle(point3 a, point3 b, point3 c, std::shared_ptr<Shader> s, color color) : vertex_a(a), vertex_b(b), vertex_c(c),
+            shader(s ? s : std::make_shared<LambertianShader>()), _color(color) {};
+
+  bool intersect(const ray &r, const float tmin, float &tmax, hitStructure &hitStruct) override
   {
     double a = vertex_a[0] - vertex_b[0];
     double b = vertex_a[1] - vertex_b[1];
@@ -59,8 +67,26 @@ class Triangle : public Shape
     if (beta < 0.0 || beta > 1.0 - gamma)
       return false;
 
-    tmax = t;
-    return true;
+    if (t < tmax) {
+      tmax = t;
+
+      hitStruct.shader = shader;
+      hitStruct.t = tmax;
+
+      //Caluculating Normal
+      vec3 u = vertex_b - vertex_a;
+      vec3 v = vertex_c - vertex_a;
+
+      hitStruct.normal = unit_vector(cross(u, v));
+
+      hitStruct.color = _color;
+      hitStruct.shader = shader;
+      hitStruct.point = r.at(tmax);
+
+      return true;
+    }
+
+    return false;
   }
 };
 

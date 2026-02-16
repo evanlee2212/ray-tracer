@@ -40,6 +40,10 @@ add_library(graphicsLib
         ../graphicsLib/PerspectiveCamera.h
         ../graphicsLib/Shape.h
         ../graphicsLib/Sphere.h
+        ../graphicsLib/Scene.h
+        ../graphicsLib/Shader.h
+        ../graphicsLib/LambertianShader.h
+        ../graphicsLib/HitStructure.h
 )
 
 target_link_libraries(graphicsLib PUBLIC PNG::PNG ZLIB::ZLIB)

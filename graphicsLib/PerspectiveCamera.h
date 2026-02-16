@@ -23,8 +23,8 @@ public:
     u = left_bound + (right_bound - left_bound) * (i + 0.5)/(float)nx;
     v = bottom_bound + (top_bound - bottom_bound) * (j + 0.5)/(float)ny;
 
-    ray tempRay( pos, W*focalLength + U*u + V*v);
-    r = tempRay;
+    vec3 dir = unit_vector(-W*focalLength + U*u + V*v);
+    r = ray(pos, dir);
 
       //intersect with Objects
       //object = findFirstObject(r);
