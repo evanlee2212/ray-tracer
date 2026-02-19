@@ -14,7 +14,7 @@ public:
   PerspectiveCamera(int w, int h) : Camera(w,h) { left_bound = -imagePlane_width/2.0f, right_bound = imagePlane_width/2.0f,
               top_bound = imagePlane_height/2.0f, bottom_bound = -imagePlane_height/2.0f; }
 
-  void generateRay(int i, int j, ray &r) override
+  void generateRay(int i, int j, Ray &r) override
   {
     float u, v;
     //im = new image(nx * ny * 3)
@@ -24,7 +24,7 @@ public:
     v = bottom_bound + (top_bound - bottom_bound) * (j + 0.5)/(float)ny;
 
     vec3 dir = unit_vector(-W*focalLength + U*u + V*v);
-    r = ray(pos, dir);
+    r = Ray(pos, dir);
 
       //intersect with Objects
       //object = findFirstObject(r);

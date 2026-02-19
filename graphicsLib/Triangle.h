@@ -5,7 +5,7 @@
 #ifndef CS4212STARTERC ODE_TRIANGLE_H
 #define CS4212STARTERCODE_TRIANGLE_H
 #include "Shape.h"
-#include "ray.h"
+#include "Ray.h"
 #include "vec3.h"
 
 class Triangle : public Shape
@@ -25,7 +25,7 @@ class Triangle : public Shape
   Triangle(point3 a, point3 b, point3 c, std::shared_ptr<Shader> s, color color) : vertex_a(a), vertex_b(b), vertex_c(c),
             shader(s ? s : std::make_shared<LambertianShader>()), _color(color) {};
 
-  bool intersect(const ray &r, const float tmin, float &tmax, hitStructure &hitStruct) override
+  bool intersect(const Ray &r, const float tmin, float &tmax, hitStructure &hitStruct) override
   {
     double a = vertex_a[0] - vertex_b[0];
     double b = vertex_a[1] - vertex_b[1];

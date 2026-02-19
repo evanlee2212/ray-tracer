@@ -14,6 +14,6 @@ protected:
 
 public:
   virtual ~Shader() = default;
-  virtual color rayColor(const hitStructure &h ) { return baseColor; };
+  virtual color rayColor(const hitStructure &h, int depth ) = 0;
 };
 

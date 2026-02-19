@@ -5,7 +5,7 @@
 #ifndef CS4212STARTERCODE_SHAPE_H
 #define CS4212STARTERCODE_SHAPE_H
 #include "HitStructure.h"
-#include "ray.h"
+#include "Ray.h"
 
 class Shape
 {
@@ -15,7 +15,7 @@ protected:
 
 public:
   virtual ~Shape() = default;
-  virtual bool intersect(const ray &r, const float tmin, float &tmax, hitStructure& hitStruct) = 0;
+  virtual bool intersect(const Ray &r, const float tmin, float &tmax, hitStructure& hitStruct) = 0;
   Shader getShader();
 };
 

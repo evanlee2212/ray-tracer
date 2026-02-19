@@ -5,7 +5,7 @@
 #ifndef CS4212STARTERCODE_CAMERA_H
 #define CS4212STARTERCODE_CAMERA_H
 
-#include "ray.h"
+#include "Ray.h"
 #include "vec3.h"
 
 class Camera
@@ -24,7 +24,7 @@ class Camera
 
 
     //Camera needs to know pixel image dimensions
-    virtual void generateRay(int i, int j, ray &r) = 0;
+    virtual void generateRay(int i, int j, Ray &r) = 0;
 
   protected:
     vec3 pos;

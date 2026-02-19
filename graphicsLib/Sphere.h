@@ -7,7 +7,7 @@
 #include "Framebuffer.h"
 #include "Shape.h"
 #include "vec3.h"
-#include "ray.h"
+#include "Ray.h"
 
 class Sphere : public Shape
 {
@@ -23,7 +23,7 @@ class Sphere : public Shape
   Sphere(point3 center, float radius, std::shared_ptr<Shader> shader, color c) : center(center), radius(radius),
         shader(shader), _color(c) {};
 
-  bool intersect(const ray& r, const float tmin, float& tmax, hitStructure& hitStruct) override
+  bool intersect(const Ray& r, const float tmin, float& tmax, hitStructure& hitStruct) override
   {
     vec3 oc = r.origin() - center;
 

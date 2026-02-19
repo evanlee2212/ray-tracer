@@ -1,7 +1,7 @@
 //
 // Created by Evan on 2/11/2026.
 //
-
+/**
 #ifndef CS4212STARTERCODE_HITSTRUCTURE_H
 #define CS4212STARTERCODE_HITSTRUCTURE_H
 
@@ -25,3 +25,4 @@ struct hitStructure
 };
 
 #endif// CS4212STARTERCODE_HITSTRUCTURE_H
+**/
