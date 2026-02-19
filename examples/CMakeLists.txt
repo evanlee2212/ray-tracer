@@ -43,8 +43,13 @@ add_library(graphicsLib
         ../graphicsLib/Scene.h
         ../graphicsLib/Shader.h
         ../graphicsLib/LambertianShader.h
-        ../graphicsLib/HitStructure.h
         ../graphicsLib/BlinnPhongShader.h
+        ../graphicsLib/BlinnPhongShader.cpp
+        ../graphicsLib/LambertianShader.cpp
+        ../graphicsLib/PerspectiveCamera.cpp
+        ../graphicsLib/Scene.cpp
+        ../graphicsLib/Sphere.cpp
+        ../graphicsLib/Triangle.cpp
 )
 
 target_link_libraries(graphicsLib PUBLIC PNG::PNG ZLIB::ZLIB)
