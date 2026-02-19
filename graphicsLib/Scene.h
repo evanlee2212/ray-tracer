@@ -82,7 +82,7 @@ public:
         if (closestHit.shader) {
           fb.setPixelColor(x, y, closestHit.shader->rayColor(closestHit, 10));
         } else {
-          fb.setPixelColor(x, y, color(0, 150, 150));
+          fb.setPixelColor(x, y, bgColor);
         }
       }
     }
@@ -90,7 +90,7 @@ public:
 
 private:
   std::vector<std::shared_ptr<Shape>> allShapes;
-  color bgColor = color(100, 200, 200);
+  color bgColor = color(135, 206, 235);
   Framebuffer fb = Framebuffer(250, 250);
   PerspectiveCamera p = PerspectiveCamera(fb.getWidth(), fb.getHeight());
 
