@@ -2,7 +2,7 @@
 // Created by Evan on 2/5/2026.
 //
 
-#ifndef CS4212STARTERC ODE_TRIANGLE_H
+#ifndef CS4212STARTERCODE_TRIANGLE_H
 #define CS4212STARTERCODE_TRIANGLE_H
 #include "Shape.h"
 #include "Ray.h"

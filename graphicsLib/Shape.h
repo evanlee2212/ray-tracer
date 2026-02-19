@@ -4,8 +4,13 @@
 
 #ifndef CS4212STARTERCODE_SHAPE_H
 #define CS4212STARTERCODE_SHAPE_H
-#include "HitStructure.h"
+#include "Framebuffer.h"
 #include "Ray.h"
+#include "vec3.h"
+
+class Scene;
+class Shader;
+struct hitStructure;
 
 class Shape
 {

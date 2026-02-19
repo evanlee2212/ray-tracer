@@ -14,7 +14,7 @@ public:
   PerspectiveCamera(int w, int h) : Camera(w,h) { left_bound = -imagePlane_width/2.0f, right_bound = imagePlane_width/2.0f,
               top_bound = imagePlane_height/2.0f, bottom_bound = -imagePlane_height/2.0f; }
 
-  void generateRay(int i, int j, Ray &r) override;
+  void generateRay(float i, float j, Ray &r) override;
 };
 
 #endif// CS4212STARTERCODE_PERSPECTIVECAMERA_H

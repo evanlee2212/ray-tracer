@@ -44,5 +44,5 @@ private:
   Framebuffer fb;
   PerspectiveCamera p = PerspectiveCamera(fb.getWidth(), fb.getHeight());
 
-
+  float randomOffset();
 };

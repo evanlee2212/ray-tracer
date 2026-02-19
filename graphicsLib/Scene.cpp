@@ -3,12 +3,16 @@
 //
 #include "Scene.h"
 
+#include <random>
+
 void Scene::exportScene(std::string name) { fb.exportAsPNG(name); }
 
 color Scene::computeRaycolor(const Ray &r, float tmin, float tmax, int depth){
-  if (depth <= 0) { return bgColor; }
+  if (depth <= 0) {
+    return bgColor;
+  }
 
-  hitStructure h;
+  /**hitStructure h;
   float localTmax = tmax;
 
   bool hitShape = false;
@@ -24,40 +28,70 @@ color Scene::computeRaycolor(const Ray &r, float tmin, float tmax, int depth){
     return c;
   } else {
     return bgColor;
+  } **/
+
+  hitStructure closestHit;
+
+  for (auto &s : allShapes) {
+    hitStructure tempHit;
+    float t_hit;
+
+    bool hit = s->intersect(r, tmin, t_hit, tempHit);
+
+    if (hit && t_hit < tmax) {
+      tmax = t_hit;
+      closestHit = tempHit;
+      closestHit.hitShape = s;
+      closestHit.r = r;
+      closestHit.shader = tempHit.shader;
+    }
+  }
+
+
+  if (closestHit.shader) {
+    color c = closestHit.shader->rayColor(closestHit, depth-1);
+    return c;
+  } else {
+    return bgColor;
   }
 }
 
 void Scene::generateScene()   {
   p.lookAt(vec3(0,0,1));
-  int rpp_NSquare = 4;
+  int rpp_NSquare = 16;
+  int depth = 10;
+
   for (int x = 0; x < fb.getWidth(); ++x) {
     for (int y = 0; y < fb.getHeight(); ++y) {
-      Ray r;
-      p.generateRay(x, y, r);
+      color c(0.0, 0.0, 0.0);
 
-      hitStructure closestHit;
-      float t_closest = FLT_MAX;
+      for (int pp =0; pp < rpp_NSquare; ++pp) {
+        for (int q = 0; q < rpp_NSquare; ++q) {
+          float tmin = 1.0;
+          float tmax = std::numeric_limits<float>::infinity();
 
-      for (auto &s : allShapes) {
-        hitStructure tempHit;
-        float t_hit;
-        if (s->intersect(r, 0.0f, t_hit, tempHit) && t_hit < t_closest) {
-          t_closest = t_hit;
-          closestHit = tempHit;
-          closestHit.hitShape = s;
-          closestHit.r = r;
+          float pOffset = (pp + randomOffset())/rpp_NSquare;
+          float qOffset = (q + randomOffset())/rpp_NSquare;
+
+          Ray r;
+          p.generateRay(x+pOffset, y+qOffset, r);
+
+          c += computeRaycolor(r, tmin, tmax, depth);
         }
       }
 
-      if (closestHit.shader) {
-        fb.setPixelColor(x, y, closestHit.shader->rayColor(closestHit, 10));
-      } else {
-        fb.setPixelColor(x, y, bgColor);
-      }
+      c = c / (float)(rpp_NSquare * rpp_NSquare);
+      fb.setPixelColor(x, y, c);
     }
   }
 }
 
 void Scene::addShape(const std::shared_ptr<Shape> shapePtr) {
   allShapes.push_back(shapePtr);
+}
+
+float Scene::randomOffset() {
+  static std::uniform_real_distribution<double> distribution(0.0, 1.0);
+  static std::mt19937 generator;
+  return distribution(generator);
 }

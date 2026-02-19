@@ -24,7 +24,7 @@ class Camera
 
 
     //Camera needs to know pixel image dimensions
-    virtual void generateRay(int i, int j, Ray &r) = 0;
+    virtual void generateRay(float i, float j, Ray &r) = 0;
 
   protected:
     vec3 pos;

@@ -5,7 +5,7 @@
 
 #include "Scene.h"
 
-void PerspectiveCamera::generateRay(int i, int j, Ray &r) {
+void PerspectiveCamera::generateRay(float i, float j, Ray &r) {
   float u, v;
   //im = new image(nx * ny * 3)
 

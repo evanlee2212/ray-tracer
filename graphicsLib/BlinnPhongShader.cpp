@@ -3,6 +3,8 @@
 //
 #include "BlinnPhongShader.h"
 
+#include "Scene.h"
+
 color BlinnPhongShader::rayColor(const hitStructure &h, int depth) {
   color lightIntensity(255, 255, 255);
   point3 lightPos(0, -50, 0);

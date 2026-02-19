@@ -3,8 +3,7 @@
 //
 
 #ifndef CS4212STARTERCODE_BLINNPHONGSHADER_H
-#define CS4212STARTERCODE_BLINNPHONGSHADER_H
-#include "HitStructure.h"
+#define CS4212STARTERCODE_BLINNPHONGSHADER_
 #include "Shader.h"
 
 class BlinnPhongShader : public Shader {
