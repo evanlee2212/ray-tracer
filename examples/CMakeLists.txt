@@ -50,6 +50,8 @@ add_library(graphicsLib
         ../graphicsLib/Scene.cpp
         ../graphicsLib/Sphere.cpp
         ../graphicsLib/Triangle.cpp
+        ../graphicsLib/MirrorShader.cpp
+        ../graphicsLib/MirrorShader.h
 )
 
 target_link_libraries(graphicsLib PUBLIC PNG::PNG ZLIB::ZLIB)
@@ -57,6 +59,15 @@ target_link_libraries(graphicsLib PUBLIC PNG::PNG ZLIB::ZLIB)
 add_executable(fb.cpp fb.cpp)
 
 target_link_libraries(fb.cpp
+        PRIVATE
+        graphicsLib
+        cs4212-util
+        ${Boost_PROGRAM_OPTIONS_LIBRARIES}
+)
+
+add_executable(mirrorTest.cpp mirrorTest.cpp)
+
+target_link_libraries(mirrorTest.cpp
         PRIVATE
         graphicsLib
         cs4212-util

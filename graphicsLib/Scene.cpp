@@ -12,24 +12,6 @@ color Scene::computeRaycolor(const Ray &r, float tmin, float tmax, int depth){
     return bgColor;
   }
 
-  /**hitStructure h;
-  float localTmax = tmax;
-
-  bool hitShape = false;
-  for (int i = 0; i < allShapes.size(); ++i) {
-    if (allShapes[i]->intersect(r, tmin, localTmax, h)) {
-      hitShape = true;
-    }
-  }
-
-  if (hitShape) {
-    std::shared_ptr<Shader> shader = h.shader;
-    color c = shader->rayColor(h, depth-1);
-    return c;
-  } else {
-    return bgColor;
-  } **/
-
   hitStructure closestHit;
 
   for (auto &s : allShapes) {
@@ -49,7 +31,7 @@ color Scene::computeRaycolor(const Ray &r, float tmin, float tmax, int depth){
 
 
   if (closestHit.shader) {
-    color c = closestHit.shader->rayColor(closestHit, depth-1);
+    color c = closestHit.shader->rayColor(closestHit, depth);
     return c;
   } else {
     return bgColor;
@@ -58,7 +40,7 @@ color Scene::computeRaycolor(const Ray &r, float tmin, float tmax, int depth){
 
 void Scene::generateScene()   {
   p.lookAt(vec3(0,0,1));
-  int rpp_NSquare = 16;
+  int rpp_NSquare = 4;
   int depth = 10;
 
   for (int x = 0; x < fb.getWidth(); ++x) {
@@ -67,7 +49,7 @@ void Scene::generateScene()   {
 
       for (int pp =0; pp < rpp_NSquare; ++pp) {
         for (int q = 0; q < rpp_NSquare; ++q) {
-          float tmin = 1.0;
+          float tmin = 0.001f;
           float tmax = std::numeric_limits<float>::infinity();
 
           float pOffset = (pp + randomOffset())/rpp_NSquare;

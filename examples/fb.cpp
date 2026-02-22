@@ -6,6 +6,7 @@
 #include "../graphicsLib/BlinnPhongShader.h"
 #include "../graphicsLib/Framebuffer.h"
 #include "../graphicsLib/LambertianShader.h"
+#include "../graphicsLib/MirrorShader.h"
 #include "../graphicsLib/PerspectiveCamera.h"
 #include "../graphicsLib/Sphere.h"
 #include "../graphicsLib/Triangle.h"
@@ -14,10 +15,9 @@ int main()
 {
     Scene world;
 
-    auto lambertianRed   = std::make_shared<LambertianShader>();
-    auto lambertianGreen = std::make_shared<LambertianShader>();
-    auto lambertianBlue  = std::make_shared<LambertianShader>();
+    auto lambertian  = std::make_shared<LambertianShader>();
     auto blinnPhong = std::make_shared<BlinnPhongShader>();
+    auto mirror = std::make_shared<MirrorShader>(world);
 
     std::vector<std::shared_ptr<Shape>> shapes;
 
@@ -25,7 +25,7 @@ int main()
       point3(0.9, 0, -5),
       point3(0.8, -0.5, -5),
       point3(-1.2, -0.2, -7),
-        lambertianRed,
+        lambertian,
         color(255, 0, 0)
     ));
 
@@ -33,7 +33,7 @@ int main()
         point3(0.773205, -0.93923, -7),
         point3(0.0330127, 0.94282, -5),
         point3(-0.45, 0.779423, -5),
-        lambertianGreen,
+        lambertian,
         color(0, 255, 0)
     ));
 
@@ -41,14 +41,14 @@ int main()
         point3(-0.45, -0.779423, -5),
         point3(-0.833013, -0.44282, -5),
         point3(0.426795, 1.13923, -7),
-        lambertianBlue,
+        lambertian,
         color(0, 0, 255)
     ));
 
   world.addShape(std::make_shared<Sphere>(
     point3(0, 0, -10),
       2.0f,
-      lambertianRed,
+      lambertian,
       color(255, 0, 0)
   ));
 
