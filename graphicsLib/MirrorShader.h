@@ -10,10 +10,10 @@
 
 class MirrorShader : public Shader  {
 private:
-  std::shared_ptr<Scene> scene;
+  Scene& scene;
 
   public:
-  MirrorShader(Scene scene) : scene(std::make_shared<Scene>(scene)) {};
+  MirrorShader(Scene& scene) : scene(scene) {};
   color rayColor(const hitStructure &h, int depth );
 };
 

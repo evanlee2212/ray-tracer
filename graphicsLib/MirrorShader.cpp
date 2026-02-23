@@ -11,9 +11,9 @@ color MirrorShader::rayColor(const hitStructure &h, int depth) {
   }
 
   vec3 reflection = reflect(h.r.direction(), h.normal);
-  Ray reflectedRay = Ray(h.point + h.normal * 0.001f, reflection);
+  Ray reflectedRay = Ray(h.point * 1.001f, reflection);
 
-  color result = scene->computeRaycolor(reflectedRay, 0.001f, FLT_MAX, depth-1);
+  color result = scene.computeRaycolor(reflectedRay, 0.001f, FLT_MAX, depth-1);
 
   return result;
 }

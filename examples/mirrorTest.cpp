@@ -11,7 +11,7 @@
 #include "../graphicsLib/Triangle.h"
 
 int main() {
-  Scene world;
+  Scene world(250,250);
 
   auto lambertian  = std::make_shared<LambertianShader>();
   auto blinnPhong = std::make_shared<BlinnPhongShader>();
@@ -21,7 +21,7 @@ int main() {
     point3(0, 50, -30),
     50.0f,
     lambertian,
-    color(71, 40, 5)
+    color(71, 40, 20)
     ));
 
   world.addShape(std::make_shared<Sphere>(

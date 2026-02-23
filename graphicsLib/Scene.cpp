@@ -40,7 +40,7 @@ color Scene::computeRaycolor(const Ray &r, float tmin, float tmax, int depth){
 
 void Scene::generateScene()   {
   p.lookAt(vec3(0,0,1));
-  int rpp_NSquare = 4;
+  int rpp_NSquare = 8;
   int depth = 10;
 
   for (int x = 0; x < fb.getWidth(); ++x) {
