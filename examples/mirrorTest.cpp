@@ -6,16 +6,19 @@
 #include "../graphicsLib/Framebuffer.h"
 #include "../graphicsLib/LambertianShader.h"
 #include "../graphicsLib/MirrorShader.h"
-#include "../graphicsLib/PerspectiveCamera.h"
 #include "../graphicsLib/Sphere.h"
 #include "../graphicsLib/Triangle.h"
+#include "../graphicsLib/PointLight.h"
 
 int main() {
-  Scene world(250,250);
+  Scene world(100,100);
 
-  auto lambertian  = std::make_shared<LambertianShader>();
-  auto blinnPhong = std::make_shared<BlinnPhongShader>();
+  auto lambertian  = std::make_shared<LambertianShader>(world);
+  auto blinnPhong = std::make_shared<BlinnPhongShader>(world);
   auto mirror = std::make_shared<MirrorShader>(world);
+
+  world.addLight(std::make_shared<PointLight>(vec3(-20,-5,0), color(255,255,255), 0.5));
+  world.addLight(std::make_shared<PointLight>(vec3(20,-5,0), color(255,255,255), 0.5));
 
   world.addShape(std::make_shared<Sphere>(
     point3(0, 50, -30),

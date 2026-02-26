@@ -52,6 +52,9 @@ add_library(graphicsLib
         ../graphicsLib/Triangle.cpp
         ../graphicsLib/MirrorShader.cpp
         ../graphicsLib/MirrorShader.h
+        ../graphicsLib/PointLight.h
+        ../graphicsLib/Light.h
+        ../graphicsLib/PointLight.cpp
 )
 
 target_link_libraries(graphicsLib PUBLIC PNG::PNG ZLIB::ZLIB)

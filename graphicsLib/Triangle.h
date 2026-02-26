@@ -18,17 +18,13 @@ class Triangle : public Shape
     color _color;
 
   public:
-  Triangle() : vertex_a(point3(1,0,0)), vertex_b(point3(0, 1, 0)), vertex_c(point3(0, 0, 1)),
-                shader(std::make_shared<LambertianShader>()), _color(0,0,0) {};
-
-  Triangle(point3 a, point3 b, point3 c) : vertex_a(a), vertex_b(b), vertex_c(c),
-            shader(std::make_shared<LambertianShader>()) {};
-
   Triangle(point3 a, point3 b, point3 c, std::shared_ptr<Shader> s, color color) : vertex_a(a), vertex_b(b), vertex_c(c),
-            shader(s ? s : std::make_shared<LambertianShader>()), _color(color) {};
+            shader(s), _color(color) {};
 
   bool intersect(const Ray &r, const float tmin, float &tmax, hitStructure &hitStruct) override;
 
+  color getColor();
+  std::shared_ptr<Shader> getShader();
 };
 
 #endif// CS4212STARTERCODE_TRIANGLE_H

@@ -15,6 +15,7 @@ public:
               top_bound = imagePlane_height/2.0f, bottom_bound = -imagePlane_height/2.0f; }
 
   void generateRay(float i, float j, Ray &r) override;
+  vec3 getEyePosition();
 };
 
 #endif// CS4212STARTERCODE_PERSPECTIVECAMERA_H

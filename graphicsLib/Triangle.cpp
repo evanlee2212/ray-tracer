@@ -65,3 +65,9 @@ bool Triangle::intersect(const Ray &r, const float tmin, float &tmax, hitStructu
 
   return false;
 }
+
+color Triangle::getColor() {
+  return _color;
+}
+
+std::shared_ptr<Shader> Triangle::getShader() { return shader; }

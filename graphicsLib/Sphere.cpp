@@ -37,3 +37,4 @@ bool Sphere::intersect(const Ray &r, const float tmin, float &tmax, hitStructure
 }
 
 std::shared_ptr<Shader> Sphere::getShader() { return shader; }
+color Sphere::getColor() { return _color; }

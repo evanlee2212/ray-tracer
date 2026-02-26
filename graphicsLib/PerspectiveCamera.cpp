@@ -22,3 +22,5 @@ void PerspectiveCamera::generateRay(float i, float j, Ray &r) {
   //set pixel color based on object shader
   //im[pi * pj] = shader(object);
 }
+
+vec3 PerspectiveCamera::getEyePosition() { return pos; }

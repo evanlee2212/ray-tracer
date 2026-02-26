@@ -72,6 +72,20 @@ void Scene::addShape(const std::shared_ptr<Shape> shapePtr) {
   allShapes.push_back(shapePtr);
 }
 
+void Scene::addLight(const std::shared_ptr<Light> lightPtr)
+{
+  allLights.push_back(lightPtr);
+}
+
+std::vector<std::shared_ptr<Light>> Scene::getLights() {
+  return allLights;
+};
+
+vec3 Scene::getEyePosition()
+{
+  return p.getEyePosition();
+}
+
 float Scene::randomOffset() {
   static std::uniform_real_distribution<double> distribution(0.0, 1.0);
   static std::mt19937 generator;

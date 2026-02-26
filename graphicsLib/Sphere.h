@@ -20,14 +20,13 @@ class Sphere : public Shape
     color _color;
 
   public:
-  Sphere() : center(point3(0,0,0)), radius(1), shader(std::make_shared<LambertianShader>()) {};
-  Sphere(point3 center, float radius) : center(center), radius(radius) {};
   Sphere(point3 center, float radius, std::shared_ptr<Shader> shader, color c) : center(center), radius(radius),
         shader(shader), _color(c) {};
 
   bool intersect(const Ray& r, const float tmin, float& tmax, hitStructure& hitStruct) override;
 
   std::shared_ptr<Shader> getShader();
+  color getColor();
 };
 
 #endif// CS4212STARTERCODE_SPHERE_H

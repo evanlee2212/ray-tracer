@@ -21,7 +21,8 @@ protected:
 public:
   virtual ~Shape() = default;
   virtual bool intersect(const Ray &r, const float tmin, float &tmax, hitStructure& hitStruct) = 0;
-  Shader getShader();
+  virtual std::shared_ptr<Shader> getShader() = 0;
+  virtual color getColor() = 0;
 };
 
 #endif// CS4212STARTERCODE_SHAPE_H

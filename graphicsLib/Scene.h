@@ -8,6 +8,7 @@
 #include "Shader.h"
 #include "Shape.h"
 #include "Ray.h"
+#include "Light.h"
 
 #include <cfloat>
 #include <memory>
@@ -36,13 +37,20 @@ public:
 
   color computeRaycolor( const Ray &r, float tmin, float tmax , int depth);
 
+  void addLight ( const std::shared_ptr<Light> lightPtr );
+
+  std::vector<std::shared_ptr<Light>> getLights();
+
   void generateScene();
+
+  vec3 getEyePosition();
 
 private:
   std::vector<std::shared_ptr<Shape>> allShapes;
   color bgColor = color(135, 206, 235);
   Framebuffer fb;
   PerspectiveCamera p = PerspectiveCamera(fb.getWidth(), fb.getHeight());
+  std::vector<std::shared_ptr<Light>> allLights;
 
   float randomOffset();
 };
