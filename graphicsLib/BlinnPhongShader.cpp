@@ -14,7 +14,7 @@ color BlinnPhongShader::rayColor(const hitStructure &h, int depth) {
   finalColor += ambient * materialColor;
 
   float kd = 1.0f;
-  float ks = 0.6f;
+  float ks = 1.0f;
   float shininess = 32.0f;
 
   vec3 V = unit_vector(scene.getEyePosition() - h.point);
@@ -58,5 +58,5 @@ color BlinnPhongShader::rayColor(const hitStructure &h, int depth) {
     std::min(finalColor.z(), 1.0)
   );
 
-  return result;
+  return result * 255.0;
 }
