@@ -6,8 +6,12 @@
 #include "Scene.h"
 
 color BlinnPhongShader::rayColor(const hitStructure &h, int depth) {
-  color materialColor = h.hitShape->getColor();
-  vec3 color(0.0, 0.0, 0.0);
+  color materialColor = h.hitShape->getColor() / 255.0;
+  vec3 finalColor(0.0, 0.0, 0.0);
+
+  //Small base illumination
+  float ambient = 0.1;
+  finalColor += ambient * materialColor;
 
   float kd = 1.0f;
   float ks = 0.6f;
@@ -19,20 +23,40 @@ color BlinnPhongShader::rayColor(const hitStructure &h, int depth) {
     vec3 L = unit_vector(light->getPosition() - h.point);
     vec3 H = unit_vector(L + V);
 
-    float diff = std::max(dot(h.normal, L), 0.0);
-    vec3 diffuse = kd * diff * light->getColor() * light->getIntensity();
+    bool inShadow = false;
+    Ray shadowRay = Ray(h.point, L);
+    float distanceToLight = (light->getPosition() - h.point).length();
 
-    float spec = std::pow(std::max(dot(h.normal, H), 0.0), shininess);
-    vec3 specular = ks * spec * light->getColor() * light->getIntensity();
+    for (const auto& shape : scene.getShapes()) {
+      hitStructure shadowHit;
+      if (shape->intersect(shadowRay, 0.001f, distanceToLight, shadowHit)) {
+        inShadow = true;
+        break;
+      }
+    }
 
-    color += diffuse * materialColor + specular;
+    if (!inShadow) {
+      vec3 lightColor = light->getColor() / 255.0;
+      float intensity = light->getIntensity();
+
+      float diff = std::max(dot(h.normal, L), 0.0);
+
+      if (diff > 0.0f) {
+        vec3 diffuse = kd * diff * lightColor * intensity * materialColor;
+
+        float spec = std::pow(std::max(dot(h.normal, H), 0.0), shininess);
+        vec3 specular = ks * spec * lightColor * intensity;
+
+        finalColor += diffuse + specular;
+      }
+    }
   }
 
-  color = vec3(
-    std::min(color.x(), 1.0),
-    std::min(color.y(), 1.0),
-    std::min(color.z(), 1.0)
+  vec3 result = vec3(
+    std::min(finalColor.x(), 1.0),
+    std::min(finalColor.y(), 1.0),
+    std::min(finalColor.z(), 1.0)
   );
 
-  return color;
+  return result;
 }

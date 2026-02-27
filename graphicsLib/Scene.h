@@ -41,6 +41,8 @@ public:
 
   std::vector<std::shared_ptr<Light>> getLights();
 
+  std::vector<std::shared_ptr<Shape>> getShapes();
+
   void generateScene();
 
   vec3 getEyePosition();

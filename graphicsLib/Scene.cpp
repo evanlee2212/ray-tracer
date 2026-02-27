@@ -79,6 +79,9 @@ void Scene::addLight(const std::shared_ptr<Light> lightPtr)
 
 std::vector<std::shared_ptr<Light>> Scene::getLights() {
   return allLights;
+}
+std::vector<std::shared_ptr<Shape>> Scene::getShapes() {
+  return allShapes;
 };
 
 vec3 Scene::getEyePosition()
