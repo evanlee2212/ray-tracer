@@ -1,128 +1,137 @@
-This project uses CMake and vcpkg for managing C++ dependencies. It serves as a simple example to test your build setup before we get into more complicted code.
+# cs4212 Ray Tracer
 
-## Building Using CMake Presets
+A CPU ray tracer supporting perspective cameras, triangle and sphere primitives, and Lambertian, Blinn-Phong, and mirror shading. Output is a PNG image.
 
-We have several CMake Build Presets that are outlined in the CMakePresets.json. Some are for building for Release or Debug mode. Running the default setup is just fine too.
+---
 
-```
-cd <path/to/this source>
-cmake --preset=default
-```
+## Dependencies
 
-Each preset defines its own build directory and various build variables that are important on that system.
+The following must be installed before building:
 
-Then, to build this source, you would
+- CMake 3.22+
+- A C++20 compiler (GCC via MinGW-w64 on Windows, or GCC/Clang on Linux/macOS)
+- [vcpkg](https://github.com/microsoft/vcpkg) with the `x64-mingw-static` triplet (Windows), or your system package manager (Linux/macOS)
+- libpng
+- Boost (`program_options` component)
+- OpenGL
+- GLEW
+- GLM
+- GLFW3
 
-```
-cd buildVCPkg
-cmake --build .
-```
+### Installing dependencies via vcpkg (Windows)
 
-Your executables will then be in the build folder. They may be in sub-folders depending on the environment.
-
-
-
-## Development Environment Setup
-
-Before you get too deep into this, you will need some tools, depending on your operating system and hardware. To build this, you do need some development tools for C++. The following sections will help with each of your specific environments.  Minimally, you need a terminal, a good C++ editor, a git command line client, and of course a C++ compiler toolchain.
-
-### Linux
-
-The following command in Ubuntu (or related) Linux will get you most of what you might
-
-```
-sudo apt update
-sudo apt install build-essential cmake git g++ pkg-config libgl-dev libglu-dev libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev 
+```bash
+vcpkg install libpng boost-program-options glew glm glfw3 --triplet x64-mingw-static
 ```
 
-### macOS
+### Installing dependencies via apt (Ubuntu/Debian)
 
-On macOS, you'll will need to get Apple's Xcode development environment and IDE installed. It's on the AppStore.
-
-After this, you will want to install Brew:
-
-```
-https://brew.sh/
+```bash
+sudo apt install libpng-dev libboost-program-options-dev libglew-dev libglm-dev libglfw3-dev
 ```
 
-Brew is a package installer for mac os that works well.  You can install pretty much any package with Brew that are available on Linux machines.
+---
 
-```
-brew install cmake
-```
+## Building
 
-will get you initially started.
+```bash
+# Clone the repository
+git clone <repo-url>
+cd cs4212StarterCode
 
+# Configure
+cmake -B build -DCMAKE_BUILD_TYPE=Release
 
-### Windows
+# If using vcpkg on Windows, add the toolchain file:
+# cmake -B build -DCMAKE_BUILD_TYPE=Release \
+#   -DCMAKE_TOOLCHAIN_FILE=<vcpkg-root>/scripts/buildsystems/vcpkg.cmake
 
-Building on Windows requires installing a few packages:
-
-* Visual Studio Community Edition 2022 (or newer - such as 2026) - this includes Microsoft's C++ compiler
-* CMake https://cmake.org/download/
-* Git Bash https://git-scm.com/downloads - You can use the powershell, but this is a nice Unix terminal for Windows and it comes with git
-* VS Code https://code.visualstudio.com - VSCode is a nice editor for C++
-
-When you install Microsoft Visual Studio Community Edition, feel free
-to add whatever development languages and frameworks you want, but
-certainly add C++ and the graphics libraries (DirectX, etc...). Once
-the development environments are installed, make sure to setup your
-git SSH keys if you want.
-
-
-# vcpkg - Generalized Build Instructions for Windows, macos and Linux
-
-Once you have some of the items above, it's time to make sure you've got vcpkg ready on your development machine.
-
-We support a more generalized build system using vcpkg [https://learn.microsoft.com/en-us/vcpkg/get_started/overview](https://learn.microsoft.com/en-us/vcpkg/get_started/overview) and CMake build presets. Vcpkg is a C++ package manager used to pull the dependencies needed to build this code. When used in this way, the cmake build system will pull the needed requirements and not rely on installed system dependencies (meaning you shouldn't have to install all sorts of things, ideally). This can result in the initial build being a little slower as the required dependencies are pulled and compiled, but it does mean that you do not have to manually install our dependencies.
-
-## Setting up vcpkg
-
-To setup vcpkg, you will need to clone the vcpkg repository and setup environment variables that CMake can use to locate your vcpkg install.  More information on vcpkg and specific details for setting it up on different systems (Windows vs. Linux-based systems) can be found here: [https://learn.microsoft.com/en-us/vcpkg/get_started/overview](https://learn.microsoft.com/en-us/vcpkg/get_started/overview). 
-
-Determine a location where you want vcpkg installed. It can be in system location for all users or cloned into your own user account. After cloning, be sure to run the bootstrap batch file in the vcpkg folder.
-
-### TLDR; On Windows
-
-Using git-bash, change directories to where you store your development files. Then, clone vcpkg, as shown below:
-
-```
-git clone https://github.com/microsoft/vcpkg.git
-cd vcpkg
-bootstrap-vcpkg.bat
+# Build
+cmake --build build
 ```
 
-Next, you will need to create the VCPKG_ROOT environment variable to point to the location of the vcpkg local repository on your system. You should also add the vcpkg root to your PATH variable. The following focuses on Windows, but the same ideas are needed on Unix systems and your shell's environment variables. On Windows, the ideal way to do this so that it is permanent is to set the variables using the Windows System Environment Variables panel from Settings. You can get to this by searching for Environment in the Windows menu. You will need something like the following:
+---
 
-```
-VCPKG_ROOT = "C:\path\to\vcpkg"
-```
-Then, make sure the VCPKG_ROOT is also in your user Path variable.  You should be able to just add another folder path to the VCPKG_ROOT location.
+## Running
 
-You will need to quit your Powershell (or git-bash) after this and bring up a new window so the PATH variable information gets propoated.
-
-
-### TLDR; On Linux and macOS
-
-Using a terminal, change directories to where you store your development files. Then, clone vcpkg, as shown below:
-
-```
-git clone https://github.com/microsoft/vcpkg.git
-cd vcpkg
-./bootstrap-vcpkg.sh
+```bash
+./testing.exe [width] [height] [filename]
 ```
 
-Next, you will need to create the VCPKG_ROOT environment variable to point to the location of the vcpkg local repository on your system. You should also add the vcpkg root to your PATH variable. On Linux, you will need to determine which shell environment you use.  For bash, you would edit the ~/.bashrc file, and modify the PATH variable a bit, as shown below:
+### Arguments
+
+| Argument   | Description           | Default       |
+|------------|-----------------------|---------------|
+| `width`    | Image width in pixels | `100`         |
+| `height`   | Image height in pixels| `100`         |
+| `filename` | Output PNG filename   | `Default.png` |
+
+- All arguments are positional and optional.
+- If `filename` does not end in `.png`, the extension is appended automatically.
+- Width and height must be greater than zero.
+
+### Examples
+
+```bash
+# Default settings (100x100, outputs Default.png)
+./testing.exe
+
+# Custom resolution
+./testing.exe 1920 1080
+
+# Custom resolution and filename
+./testing.exe 1920 1080 output.png
+
+# Help
+./testing.exe --help
+```
+
+---
+
+## Default Scene
+
+The default scene contains:
+
+- A ground plane (green, Lambertian)
+- A center sphere (white, mirror)
+- A right sphere (blue, Lambertian)
+- A left sphere (red, Blinn-Phong)
+- A point light at `(5, -15, 0)`
+- Camera positioned at `(0, 0, -5)`
+
+---
+
+## Running Unit Tests
+
+```bash
+cd build
+ctest --output-on-failure
+```
+
+---
+
+## Optional Static Analysis
+
+```bash
+# Enable cppcheck
+cmake -B build -DENABLE_CPPCHECK=ON
+
+# Enable clang-tidy (requires clang-tidy-13)
+cmake -B build -DENABLE_CLANG_TIDY=ON
+```
+
+---
+
+## Project Structure
 
 ```
-export VCPKG_ROOT=/home/willemsn/dev/vcpkg
-export PATH="$PATH":"$VCPKG_ROOT"
-```
-
-The instructions are similar for macOS. Determine which shell you use (typically zsh), and then add similar lines to the ~/.zprofile file.
-
-Then, when you restart your terminals, you should be able to run the vcpkg program:
-```
-vcpkg
+cs4212StarterCode/
+├── graphicsLib/  # Core ray tracer (camera, scene, shaders, primitives)
+├── src/          # Main entry point
+├── examples/     # Example programs
+├── OpenGL/       # OpenGL viewer
+├── utests/       # Catch2 unit tests
+├── cmake/        # CMake modules
+└── CMakeLists.txt
 ```
 
