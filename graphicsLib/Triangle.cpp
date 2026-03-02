@@ -31,7 +31,7 @@ bool Triangle::intersect(const Ray &r, const float tmin, float &tmax, hitStructu
 
   if (fabs(M) < 1e-8) return false;
 
-  float t = -(f*ak_minus_jb + e*jc_minus_al + d*bl_minus_kc) / M;
+  double t = -(f*ak_minus_jb + e*jc_minus_al + d*bl_minus_kc) / M;
 
   if (t < tmin)
     return false;
@@ -47,18 +47,16 @@ bool Triangle::intersect(const Ray &r, const float tmin, float &tmax, hitStructu
   if (t < tmax) {
     tmax = t;
 
-    hitStruct.shader = shader;
-    hitStruct.t = tmax;
-
-    //Caluculating Normal
+    //Calculating Normal
     vec3 u = vertex_b - vertex_a;
     vec3 v = vertex_c - vertex_a;
 
-    hitStruct.normal = unit_vector(cross(u, v));
-
-    hitStruct.color = _color;
-    hitStruct.shader = shader;
+    //Update hitStructure
+    hitStruct.t = tmax;
     hitStruct.point = r.at(tmax);
+    hitStruct.normal = unit_vector(cross(u, v));
+    hitStruct.shader = getShader();
+    hitStruct.color = _color;
 
     return true;
   }

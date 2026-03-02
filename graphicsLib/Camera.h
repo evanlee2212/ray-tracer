@@ -15,12 +15,17 @@ class Camera
         imagePlane_width(0.5), imagePlane_height(0.5), nx(100), ny(100) {}
 
     Camera(int pixel_nx, int pixel_ny) : pos(0,0,0), U(1,0,0), V(0,1,0), W(0,0,-1), focalLength(0.5),
-        imagePlane_width(0.25), imagePlane_height(0.25), nx(pixel_nx), ny(pixel_ny) {}
+        imagePlane_width(0.25), imagePlane_height(0.25), left_bound(-0.125), right_bound(0.125), bottom_bound(0.125), top_bound(0.125),
+        nx(pixel_nx), ny(pixel_ny) {}
 
     virtual ~Camera() {}
 
     void moveTo(point3 e) { pos = e; }
-    void lookAt(vec3 d) { W = d; }
+    void lookAt(point3 target, vec3 up=vec3(0,1,0)) {
+      W = unit_vector(pos - target);
+      U = unit_vector(cross(up, W));
+      V = cross(W, U);
+    }
 
 
     //Camera needs to know pixel image dimensions

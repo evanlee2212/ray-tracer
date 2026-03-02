@@ -47,6 +47,10 @@ public:
 
   vec3 getEyePosition();
 
+  void moveTo(const point3 & vec3);
+  void lookAt(const point3 & vec3);
+  void setBG(const color & c);
+
 private:
   std::vector<std::shared_ptr<Shape>> allShapes;
   color bgColor = color(135, 206, 235);

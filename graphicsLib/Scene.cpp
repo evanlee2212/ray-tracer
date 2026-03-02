@@ -16,7 +16,7 @@ color Scene::computeRaycolor(const Ray &r, float tmin, float tmax, int depth){
 
   for (auto &s : allShapes) {
     hitStructure tempHit;
-    float t_hit;
+    float t_hit = tmax;
 
     bool hit = s->intersect(r, tmin, t_hit, tempHit);
 
@@ -58,6 +58,8 @@ void Scene::generateScene()   {
           Ray r;
           p.generateRay(x+pOffset, y+qOffset, r);
 
+          //std::cout << "ORIGIN: " << r.origin() << " DIRECTION: " << r.direction() << std::endl;
+
           c += computeRaycolor(r, tmin, tmax, depth);
         }
       }
@@ -87,6 +89,18 @@ std::vector<std::shared_ptr<Shape>> Scene::getShapes() {
 vec3 Scene::getEyePosition()
 {
   return p.getEyePosition();
+}
+
+void Scene::moveTo(const point3 &vec3) {
+  p.moveTo(vec3);
+}
+
+void Scene::lookAt(const point3 &vec3)
+{
+  p.lookAt(vec3);
+}
+void Scene::setBG(const color &c) {
+  bgColor = c;
 }
 
 float Scene::randomOffset() {

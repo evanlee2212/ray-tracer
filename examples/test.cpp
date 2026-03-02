@@ -1,6 +1,7 @@
 //
-// Created by Evan on 2/22/2026.
+// Created by Evan on 3/1/2026.
 //
+
 #include "../graphicsLib/Scene.h"
 #include "../graphicsLib/BlinnPhongShader.h"
 #include "../graphicsLib/Framebuffer.h"
@@ -19,8 +20,8 @@ void printUsage(const char * programName) {
 }
 
 int main(int argc, char* argv[]) {
-  int width = 250;
-  int height = 250;
+  int width = 100;
+  int height = 100;
   std::string filename = "Default.png";
 
   //parse command line arguments
@@ -56,42 +57,51 @@ int main(int argc, char* argv[]) {
 
   Scene world(width, height);
 
+  //World Settings:
+  //world.setBG(color(200, 0, 0 ));
+
+  //Camera
+  world.moveTo(point3(0, 0, -5));
+  //world.lookAt(point3(2,0,-6));
+
+  //Shaders
   auto lambertian  = std::make_shared<LambertianShader>(world);
   auto blinnPhong = std::make_shared<BlinnPhongShader>(world);
   auto mirror = std::make_shared<MirrorShader>(world);
 
-  world.addLight(std::make_shared<PointLight>(vec3(-5,-15,-15), color(255,255,255), 0.5));
-  world.addLight(std::make_shared<PointLight>(vec3(5,-5,5), color(255,255,255), 0.5));
+  //Lights
+  world.addLight(std::make_shared<PointLight>(vec3(5,-15,0), color(255,255, 255), 1));
 
-  //Ground Object
-  world.addShape(std::make_shared<Sphere>(
-    point3(0, 50, -20),
-    50.0f,
+  //Ground
+  world.addShape(std::make_shared<Triangle>(
+    point3(0, 1, -6),
+    point3(100, 1, 50),
+    point3(-100, 1, 50),
     lambertian,
-    color(71, 40, 20)
-    ));
-
-  //Right Sphere
-  world.addShape(std::make_shared<Sphere>(
-    point3(2, 0, -10),
-      2.0f,
-      lambertian,
-      color(255, 0, 0)
-  ));
-
-  //Left Sphere
-  world.addShape(std::make_shared<Sphere>(
-    point3(-1, 0, -10),
-    1.0f,
-    mirror,
-    color(100, 100, 100)));
+    color(75,200,125)));
 
   //Middle Sphere
   world.addShape(std::make_shared<Sphere>(
-    point3(0, 1, -8),
-    0.75f,
-    blinnPhong,
+    point3(0, 0.5, 5),
+    0.5f,
+    mirror,
+    color(255, 255, 255)));
+
+  //Right Sphere
+  world.addShape(std::make_shared<Sphere>(
+    point3(1, 0.5, 5),
+    0.5f,
+    lambertian,
     color(0, 0, 255)));
+
+  //Right Sphere
+  world.addShape(std::make_shared<Sphere>(
+    point3(-1, 0.5, 5),
+    0.5f,
+    blinnPhong,
+    color(255, 0, 0)));
+
+
 
   world.generateScene();
 

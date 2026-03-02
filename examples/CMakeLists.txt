@@ -7,6 +7,9 @@
 
 include_directories(${CMAKE_SOURCE_DIR}/src)
 
+find_package(PNG REQUIRED)
+find_package(ZLIB REQUIRED)
+
 add_executable(test_pngWrite
   test_pngWrite.cpp
 )
@@ -28,9 +31,6 @@ target_link_libraries(test_readPNGFile cs4212-util)
 target_link_libraries(test_readPNGFile ${Boost_PROGRAM_OPTIONS_LIBRARIES})
 target_link_libraries(test_readPNGFile PNG::PNG)
 target_link_libraries(test_readPNGFile ZLIB::ZLIB)
-
-find_package(PNG REQUIRED)
-find_package(ZLIB REQUIRED)
 
 add_library(graphicsLib
         ../graphicsLib/Framebuffer.cpp
@@ -57,24 +57,21 @@ add_library(graphicsLib
         ../graphicsLib/PointLight.cpp
 )
 
-target_link_libraries(graphicsLib PUBLIC PNG::PNG ZLIB::ZLIB)
+target_link_libraries(graphicsLib PRIVATE PNG::PNG)
 
-add_executable(fb.cpp fb.cpp)
+add_executable(fb fb.cpp)
 
-target_link_libraries(fb.cpp
-        PRIVATE
-        graphicsLib
-        cs4212-util
-        ${Boost_PROGRAM_OPTIONS_LIBRARIES}
-)
+target_link_libraries(fb cs4212-util)
+target_link_libraries(fb ${Boost_PROGRAM_OPTIONS_LIBRARIES})
+target_link_libraries(fb PNG::PNG)
+target_link_libraries(fb ZLIB::ZLIB)
+target_link_libraries(fb graphicsLib)
 
-add_executable(mirrorTest.cpp mirrorTest.cpp)
+add_executable(testing test.cpp)
 
-target_link_libraries(mirrorTest.cpp
-        PRIVATE
-        graphicsLib
-        cs4212-util
-        ${Boost_PROGRAM_OPTIONS_LIBRARIES}
-)
-
-
+target_link_libraries(testing
+    cs4212-util
+    ${Boost_PROGRAM_OPTIONS_LIBRARIES}
+    PNG::PNG
+    ZLIB::ZLIB
+    graphicsLib)
