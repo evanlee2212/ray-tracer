@@ -55,6 +55,8 @@ public:
   void lookAt(const point3 & vec3);
   void setBG(const color & c);
 
+
+  std::map<std::string, std::shared_ptr<Shader>> shaderMap;
 private:
   std::vector<std::shared_ptr<Shape>> allShapes;
   color bgColor = color(135, 206, 235);
@@ -62,6 +64,7 @@ private:
   PerspectiveCamera p = PerspectiveCamera(fb.getWidth(), fb.getHeight());
   std::vector<std::shared_ptr<Light>> allLights;
   std::vector<std::shared_ptr<Camera>> allCameras;
+
 
   float randomOffset();
 };

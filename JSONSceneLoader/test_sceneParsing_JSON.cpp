@@ -1,6 +1,3 @@
-#include
-#include
-
 
 #include <iostream>
 
@@ -36,7 +33,7 @@ public:
     std::cout << "Creating camera: " << name << ", type:" << type << std::endl;
   }
   void addPointLight(const ISceneLoader::vec &pos,
-    const vec &intensity) override {
+    const vec &intensity) {
     std::cout << "Creating point light." << std::endl;
   }
   void addAreaLight(const ISceneLoader::vec &pos,

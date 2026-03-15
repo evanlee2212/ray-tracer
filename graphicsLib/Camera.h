@@ -32,6 +32,8 @@ class Camera
     virtual void generateRay(float i, float j, Ray &r) = 0;
     virtual std::string getType() { return type; }
     virtual void setType(std::string type) { this->type = type; }
+    void setFocalLength(float f) { focalLength = f; }
+    void setImagePlaneWidth(float w) { imagePlane_width = w; }
 
     std::string type;
 

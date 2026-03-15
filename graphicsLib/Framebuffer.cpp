@@ -61,7 +61,7 @@ void Framebuffer::exportAsPNG(std::string filename)
       int g = std::clamp(int(c.y()), 0, 255);
       int b = std::clamp(int(c.z()), 0, 255);
 
-      img[y][x] = png::rgb_pixel(r, g, b);
+      img[height - 1 - y][x] = png::rgb_pixel(r, g, b);
     }
   }
 

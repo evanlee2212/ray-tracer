@@ -14,6 +14,11 @@ void Scene::exportScene(std::string name)
 }
 
 color Scene::computeRaycolor(const Ray &r, float tmin, float tmax, int depth){
+  static bool printed = false;
+  if (!printed) {
+    printed = true;
+  }
+
   if (depth <= 0) {
     return bgColor;
   }
@@ -45,7 +50,7 @@ color Scene::computeRaycolor(const Ray &r, float tmin, float tmax, int depth){
 }
 
 void Scene::generateScene()   {
-  p.lookAt(vec3(0,0,1));
+  auto cam = allCameras[0];
   int rpp_NSquare = 8;
   int depth = 10;
 
@@ -62,7 +67,7 @@ void Scene::generateScene()   {
           float qOffset = (q + randomOffset())/rpp_NSquare;
 
           Ray r;
-          p.generateRay(x+pOffset, y+qOffset, r);
+          cam.get()->generateRay(x+pOffset, y+qOffset, r);
 
           c += computeRaycolor(r, tmin, tmax, depth);
         }
