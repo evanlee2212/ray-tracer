@@ -5,7 +5,13 @@
 
 #include <random>
 
-void Scene::exportScene(std::string name) { fb.exportAsPNG(name); }
+void Scene::exportScene(std::string name)
+{
+  //Replace .json with .png
+  std::string outFile = name.substr(0, name.find(".")) + ".png";
+  std::cout << "Writing PNG to: " << outFile << std::endl;
+  fb.exportAsPNG(outFile);
+}
 
 color Scene::computeRaycolor(const Ray &r, float tmin, float tmax, int depth){
   if (depth <= 0) {
@@ -58,8 +64,6 @@ void Scene::generateScene()   {
           Ray r;
           p.generateRay(x+pOffset, y+qOffset, r);
 
-          //std::cout << "ORIGIN: " << r.origin() << " DIRECTION: " << r.direction() << std::endl;
-
           c += computeRaycolor(r, tmin, tmax, depth);
         }
       }
@@ -79,12 +83,22 @@ void Scene::addLight(const std::shared_ptr<Light> lightPtr)
   allLights.push_back(lightPtr);
 }
 
+void Scene::addCamera(const std::shared_ptr<Camera> camPtr)
+{
+  allCameras.push_back(camPtr);
+}
+
 std::vector<std::shared_ptr<Light>> Scene::getLights() {
   return allLights;
 }
 std::vector<std::shared_ptr<Shape>> Scene::getShapes() {
   return allShapes;
 };
+
+std::vector<std::shared_ptr<Camera>> Scene::getCameras()
+{
+  return allCameras;
+}
 
 vec3 Scene::getEyePosition()
 {

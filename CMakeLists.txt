@@ -100,7 +100,7 @@ add_subdirectory(examples)
 #add_subdirectory(graphicsLib)
 
 # Create your rendering library here....
-
+add_subdirectory(JSONSceneLoader)
 
 #
 # OpenGL Example

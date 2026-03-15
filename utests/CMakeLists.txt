@@ -30,7 +30,13 @@ set(UTESTS
 # boost unit test for use by the CMake CTest system.
 # 
 foreach(uexec ${UTESTS})
-  add_executable(${uexec} ${uexec}.cpp)
+  add_executable(${uexec} ${uexec}.cpp
+          ../JSONSceneLoader/ISceneLoader.h
+          ../JSONSceneLoader/SceneLoader.h
+          ../JSONSceneLoader/SceneParser_JSON.cpp
+          ../JSONSceneLoader/SceneParser_JSON.h
+          ../JSONSceneLoader/sceneLoaderTest.cpp
+          ../JSONSceneLoader/test_sceneParsing_JSON.cpp)
 
   target_link_libraries(${uexec} PRIVATE
           Catch2::Catch2WithMain

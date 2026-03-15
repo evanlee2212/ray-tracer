@@ -30,6 +30,10 @@ class Camera
 
     //Camera needs to know pixel image dimensions
     virtual void generateRay(float i, float j, Ray &r) = 0;
+    virtual std::string getType() { return type; }
+    virtual void setType(std::string type) { this->type = type; }
+
+    std::string type;
 
   protected:
     vec3 pos;
@@ -41,7 +45,8 @@ class Camera
     float left_bound, right_bound, top_bound, bottom_bound;
 
     int nx, ny;
-private:
+
+  private:
   vec3 location;
   vec3 direction;
 };

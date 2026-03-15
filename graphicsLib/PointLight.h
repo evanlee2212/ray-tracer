@@ -16,6 +16,8 @@ public:
   vec3 getColor() override;
   float getIntensity() override;
 
+  std::string type = "Point Light";
+
 private:
   vec3 position;
   vec3 color;

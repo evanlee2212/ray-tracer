@@ -57,7 +57,7 @@ add_library(graphicsLib
         ../graphicsLib/PointLight.cpp
 )
 
-target_link_libraries(graphicsLib PRIVATE PNG::PNG)
+target_link_libraries(graphicsLib PUBLIC PNG::PNG)
 
 add_executable(fb fb.cpp)
 

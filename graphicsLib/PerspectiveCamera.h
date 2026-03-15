@@ -16,6 +16,8 @@ public:
 
   void generateRay(float i, float j, Ray &r) override;
   vec3 getEyePosition();
+
+  std::string type = "Perspective";
 };
 
 #endif// CS4212STARTERCODE_PERSPECTIVECAMERA_H

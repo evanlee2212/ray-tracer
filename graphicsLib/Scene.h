@@ -43,6 +43,10 @@ public:
 
   std::vector<std::shared_ptr<Shape>> getShapes();
 
+  void addCamera( const std::shared_ptr<Camera> camPtr );
+
+  std::vector<std::shared_ptr<Camera>> getCameras();
+
   void generateScene();
 
   vec3 getEyePosition();
@@ -57,6 +61,7 @@ private:
   Framebuffer fb;
   PerspectiveCamera p = PerspectiveCamera(fb.getWidth(), fb.getHeight());
   std::vector<std::shared_ptr<Light>> allLights;
+  std::vector<std::shared_ptr<Camera>> allCameras;
 
   float randomOffset();
 };

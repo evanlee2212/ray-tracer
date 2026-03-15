@@ -15,6 +15,8 @@ public:
   virtual vec3 getPosition() = 0;
   virtual vec3 getColor() = 0;
   virtual float getIntensity() = 0;
+
+  std::string type;
 };
 
 #endif// CS4212STARTERCODE_LIGHT_H
