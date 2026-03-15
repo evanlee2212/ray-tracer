@@ -93,6 +93,7 @@ public:
     //Make Shader
     std::shared_ptr<Shader> shader;
 
+
     if (shaderDesc.type == "Lambertian") {
       shader = std::make_shared<LambertianShader>(m_targetScene);
     } else if (shaderDesc.type == "BlinnPhong") {
@@ -101,6 +102,8 @@ public:
       shader = std::make_shared<MirrorShader>(m_targetScene);
     } else throw std::invalid_argument("Invalid shader type: " + shaderDesc.type);
 
+    vec c = shaderDesc.diffuse.data;
+    shader->setColor(color(c.x, c.y, c.z));
     // I place my shaders on an unordered map often
     m_targetScene.shaderMap.emplace(shaderDesc.name, shader);
   }
@@ -132,14 +135,14 @@ public:
 
     if (shapeDesc.type == "sphere") {
       vec3 center(shapeDesc.center.x, shapeDesc.center.y, shapeDesc.center.z);
-      shape = std::make_shared<Sphere>(center, shapeDesc.radius, shader, color(0, 0, 1)*255);
+      shape = std::make_shared<Sphere>(center, shapeDesc.radius, shader, shader->getColor());
       std::cout << "Sphere created at " << center.x() << "," << center.y() << "," << center.z() << std::endl;
 
     } else if (shapeDesc.type == "triangle") {
       vec3 v0(shapeDesc.v0.x, shapeDesc.v0.y, shapeDesc.v0.z);
       vec3 v1(shapeDesc.v1.x, shapeDesc.v1.y, shapeDesc.v1.z);
       vec3 v2(shapeDesc.v2.x, shapeDesc.v2.y, shapeDesc.v2.z);
-      shape = std::make_shared<Triangle>(v0, v1, v2, shader, color(0, 0, 1)*255);
+      shape = std::make_shared<Triangle>(v0, v1, v2, shader, shader->getColor());
     } else {
       throw std::invalid_argument("Unknown shape type: " + shapeDesc.type);
     }
