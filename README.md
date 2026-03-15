@@ -1,6 +1,6 @@
 # cs4212 Ray Tracer
 
-A CPU ray tracer supporting perspective cameras, triangle and sphere primitives, and Lambertian, Blinn-Phong, and mirror shading. Output is a PNG image.
+A CPU ray tracer supporting perspective cameras, triangle and sphere primitives, and Lambertian, Blinn-Phong, and mirror shading. Output is a PNG image. Scenes can be defined programmatically or loaded from JSON scene files.
 
 ---
 
@@ -17,23 +17,21 @@ The following must be installed before building:
 - GLEW
 - GLM
 - GLFW3
+- [nlohmann/json](https://github.com/nlohmann/json)
 
 ### Installing dependencies via vcpkg (Windows)
-
 ```bash
-vcpkg install libpng boost-program-options glew glm glfw3 --triplet x64-mingw-static
+vcpkg install libpng boost-program-options glew glm glfw3 nlohmann-json --triplet x64-mingw-static
 ```
 
 ### Installing dependencies via apt (Ubuntu/Debian)
-
 ```bash
-sudo apt install libpng-dev libboost-program-options-dev libglew-dev libglm-dev libglfw3-dev
+sudo apt install libpng-dev libboost-program-options-dev libglew-dev libglm-dev libglfw3-dev nlohmann-json3-dev
 ```
 
 ---
 
 ## Building
-
 ```bash
 # Clone the repository
 git clone <repo-url>
@@ -54,24 +52,20 @@ cmake --build build
 
 ## Running
 
+### Programmatic scene (testing.exe)
 ```bash
 ./testing.exe [width] [height] [filename]
 ```
 
-### Arguments
-
-| Argument   | Description           | Default       |
-|------------|-----------------------|---------------|
-| `width`    | Image width in pixels | `100`         |
-| `height`   | Image height in pixels| `100`         |
-| `filename` | Output PNG filename   | `Default.png` |
+| Argument   | Description            | Default       |
+|------------|------------------------|---------------|
+| `width`    | Image width in pixels  | `100`         |
+| `height`   | Image height in pixels | `100`         |
+| `filename` | Output PNG filename    | `Default.png` |
 
 - All arguments are positional and optional.
 - If `filename` does not end in `.png`, the extension is appended automatically.
 - Width and height must be greater than zero.
-
-### Examples
-
 ```bash
 # Default settings (100x100, outputs Default.png)
 ./testing.exe
@@ -86,9 +80,60 @@ cmake --build build
 ./testing.exe --help
 ```
 
+### JSON scene loader (sceneLoaderTest.exe)
+```bash
+./sceneLoaderTest.exe <scene_file.json>
+```
+
+- Takes a single JSON scene file as input.
+- Outputs a PNG to the same directory as the input file, with the `.json` extension replaced by `.png`.
+```bash
+./sceneLoaderTest.exe scenes/oneSphere.json
+# outputs: scenes/oneSphere.png
+```
+
+#### JSON Scene Format
+```json
+{
+  "scene": {
+    "camera": [{
+      "position": "0 0 0",
+      "viewDir": "0 0 -1",
+      "focalLength": 1.0,
+      "imagePlaneWidth": 0.5,
+      "_name": "main",
+      "_type": "perspective"
+    }],
+    "light": [{
+      "position": "0 10 0",
+      "intensity": "1.0 1.0 1.0",
+      "_type": "point"
+    }],
+    "shader": [{
+      "diffuse": "0 0 1",
+      "_name": "blue",
+      "_type": "Lambertian"
+    }],
+    "shape": [{
+      "shader": { "_ref": "blue" },
+      "center": "0 0 -5",
+      "radius": 1,
+      "_name": "sphere1",
+      "_type": "sphere"
+    }]
+  }
+}
+```
+
+Supported types:
+- **Cameras:** `perspective`
+- **Lights:** `point`
+- **Shaders:** `Lambertian`, `BlinnPhong`, `Mirror`
+- **Shapes:** `sphere`, `triangle`, `box`, `mesh`, `instance`
+
 ---
 
-## Default Scene
+## Default Scene (testing.exe)
 
 The default scene contains:
 
@@ -102,7 +147,6 @@ The default scene contains:
 ---
 
 ## Running Unit Tests
-
 ```bash
 cd build
 ctest --output-on-failure
@@ -111,7 +155,6 @@ ctest --output-on-failure
 ---
 
 ## Optional Static Analysis
-
 ```bash
 # Enable cppcheck
 cmake -B build -DENABLE_CPPCHECK=ON
@@ -123,15 +166,15 @@ cmake -B build -DENABLE_CLANG_TIDY=ON
 ---
 
 ## Project Structure
-
 ```
 cs4212StarterCode/
-├── graphicsLib/  # Core ray tracer (camera, scene, shaders, primitives)
-├── src/          # Main entry point
-├── examples/     # Example programs
-├── OpenGL/       # OpenGL viewer
-├── utests/       # Catch2 unit tests
-├── cmake/        # CMake modules
+├── graphicsLib/      # Core ray tracer (camera, scene, shaders, primitives)
+├── JSONSceneLoader/  # JSON scene parser and loader
+├── src/              # Main entry point
+├── examples/         # Example programs
+├── OpenGL/           # OpenGL viewer
+├── utests/           # Catch2 unit tests
+├── cmake/            # CMake modules
 └── CMakeLists.txt
 ```
 
