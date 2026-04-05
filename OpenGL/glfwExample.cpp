@@ -101,9 +101,9 @@ int main(void)
   glBindBuffer(GL_ARRAY_BUFFER, m_triangleVBO[0]);
 
   std::vector<float> host_VertexBuffer{
-    // Position           // Color
-    -3.0f, -3.0f, 0.0f,   1.0f, 0.0f, 0.0f,
-    3.0f, -3.5f, 0.0f,   0.0f, 1.0f, 0.0f,
+    // Position           //Normal
+    -3.0f, -3.0f, 0.0f,   0.0f, 0.0f, 1.0f,
+    3.0f, -3.5f, 0.0f,   0.0f, 0.0f, 1.0f,
     0.0f, 3.0f, 0.0f,    0.0f, 0.0f, 1.0f,};
 
   int numBytes = host_VertexBuffer.size() * sizeof(float);
@@ -132,82 +132,108 @@ int main(void)
 
   // Create a shader using my GLSLObject class
   sivelab::GLSLObject shader;
-  shader.addShader( "vertexShader_withMatrixTransformation.glsl", sivelab::GLSLObject::VERTEX_SHADER );
-  shader.addShader( "fragmentShader_passthrough.glsl", sivelab::GLSLObject::FRAGMENT_SHADER );
+  shader.addShader( "vertexShader_PrepForPerFragment.glsl", sivelab::GLSLObject::VERTEX_SHADER );
+  shader.addShader( "fragmentShader_Normal.glsl", sivelab::GLSLObject::FRAGMENT_SHADER );
   shader.createProgram();
 
-  GLuint projMatrixID, viewMatrixID, modelMatrixID;
+  GLuint projMatrixID, viewMatrixID, modelMatrixID, normalMatrixID;
   projMatrixID = shader.createUniform("projMatrix");
   viewMatrixID = shader.createUniform("viewMatrix");
   modelMatrixID = shader.createUniform("modelMatrix");
+  normalMatrixID = shader.createUniform("normalMatrix");
+
+  GLuint lightPosID = shader.createUniform("lightPosWorld");
+  GLuint intensityID = shader.createUniform("intensity");
+  GLuint laID = shader.createUniform("la");
+  GLuint kaID = shader.createUniform("ka");
+  GLuint kdID = shader.createUniform("kd");
+  GLuint ksID = shader.createUniform("ks");
+  GLuint phongExpID = shader.createUniform("phongExp");
+
+  //Light data
+  glm::vec4 lightPosWorld(0.0f, 0.0f, 3.0f, 1.0f);
+  glm::vec3 intensity(1.0f, 1.0f, 1.0f);
+
+  //Blinn-Phong parameters
+  glm::vec3 la(0.2f, 0.2f, 0.2f);
+  glm::vec3 ka(0.2f, 0.2f, 0.2f);
+  glm::vec3 kd(0.8f, 0.4f, 0.2f);  // orange-ish
+  glm::vec3 ks(1.0f, 1.0f, 1.0f);  // white specular
+  float phongExp = 32.0f;
+
+  shader.activate();
+  glUniform4fv(lightPosID,1, glm::value_ptr(lightPosWorld));
+  glUniform3fv(intensityID,1, glm::value_ptr(intensity));
+  glUniform3fv(laID,1, glm::value_ptr(la));
+  glUniform3fv(kaID,1, glm::value_ptr(ka));
+  glUniform3fv(kdID,1, glm::value_ptr(kd));
+  glUniform3fv(ksID,1, glm::value_ptr(ks));
+  glUniform1f(phongExpID, phongExp);
+  shader.deactivate();
 
   glm::mat4 modelTransform = glm::mat4(1.0f);
   float rot = 0;
   modelTransform = glm::rotate(modelTransform, rot, glm::vec3(0.0f, 1.0f, 0.0f));
 
-  glm::vec3 m_pos(0,0,0), m_viewDir(0,0,-1);
+  glm::vec3 m_pos(0,0,10), m_viewDir(0,0,-1);
   glm::vec3 m_U(1,0,0), m_V(0,1,0), m_W(0,0,1);
 
     double timeDiff = 0.0, startFrameTime = 0.0, endFrameTime = 0.0;
     
     /* Loop until the user closes the window */
-    while (!glfwWindowShouldClose(window))
-    {
-        endFrameTime = glfwGetTime();
-        timeDiff = endFrameTime - startFrameTime;
-        startFrameTime = glfwGetTime();
+  while (!glfwWindowShouldClose(window))
+  {
+    endFrameTime = glfwGetTime();
+    timeDiff = endFrameTime - startFrameTime;
+    startFrameTime = glfwGetTime();
 
-        // Clear the window's buffer (or clear the screen to our
-        // background color)
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-      // Create View matrix from our camera data
-      glm::mat4 M_view = glm::lookAt(m_pos, m_pos-m_W, m_V);
+    glm::mat4 M_view = glm::lookAt(m_pos, m_pos - m_W, m_V);
 
-        /* Render your objects here */
-      shader.activate();
+    shader.activate();
 
-      modelTransform = glm::mat4(1.0f);
-      modelTransform = glm::rotate(modelTransform, rot, glm::vec3(0, 1, 0));
-      rot += 0.001;
+    // Update model transform
+    modelTransform = glm::mat4(1.0f);
+    modelTransform = glm::rotate(modelTransform, rot, glm::vec3(0, 1, 0));
+    rot += 0.0001f;
+    if (rot > 3.14159f * 2) rot = 0.0f;
 
-      if (rot > 3.14159 * 2) rot = 0.0f;
+    // Compute normal matrix from model matrix
+    glm::mat4 normalMatrix = glm::transpose(glm::inverse(M_view * modelTransform));
 
-      glUniformMatrix4fv(projMatrixID, 1, GL_FALSE, glm::value_ptr(perspMat));
-      glUniformMatrix4fv(viewMatrixID, 1, GL_FALSE, glm::value_ptr(M_view));
-      glUniformMatrix4fv(modelMatrixID, 1, GL_FALSE, glm::value_ptr(modelTransform));
+    // Set all uniforms
+    glUniformMatrix4fv(projMatrixID,   1, GL_FALSE, glm::value_ptr(perspMat));
+    glUniformMatrix4fv(viewMatrixID,   1, GL_FALSE, glm::value_ptr(M_view));
+    glUniformMatrix4fv(modelMatrixID,  1, GL_FALSE, glm::value_ptr(modelTransform));
+    glUniformMatrix4fv(normalMatrixID, 1, GL_FALSE, glm::value_ptr(normalMatrix));
 
-      glBindVertexArray(m_VAO);
-      glDrawArrays(GL_TRIANGLES, 0, 3);
-      glBindVertexArray(0);
+    // Draw
+    glBindVertexArray(m_VAO);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+    glBindVertexArray(0);
 
-      shader.deactivate();
+    shader.deactivate();
 
-        // Swap the front and back buffers
-        glfwSwapBuffers(window);
+    glfwSwapBuffers(window);
+    glfwPollEvents();
 
-        /* Poll for and process events */
-        glfwPollEvents();
+    // Camera movement
+    float moveRatePerFrame = 0.05f;
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+      m_pos = m_pos + -m_W * moveRatePerFrame;
+    else if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+      m_pos = m_pos - m_U * moveRatePerFrame;
+    else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+      m_pos = m_pos + m_W * moveRatePerFrame;
+    else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+      m_pos = m_pos + m_U * moveRatePerFrame;
 
-      float moveRatePerFrame = 0.05;
-
-        if (glfwGetKey( window, GLFW_KEY_W ) == GLFW_PRESS) {
-           m_pos = m_pos + -m_W * moveRatePerFrame;
-        } else if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-          m_pos = m_pos - m_U * moveRatePerFrame;
-        } else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-          m_pos = m_pos + m_W * moveRatePerFrame;
-        } else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-          m_pos = m_pos + m_U * moveRatePerFrame;
-        }
-
-      if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS) {
-        std::cout << "fps: " << 1.0 / timeDiff << std::endl;
-      }
-        if (glfwGetKey( window, GLFW_KEY_ESCAPE ) == GLFW_PRESS) {
-            glfwSetWindowShouldClose(window, 1);
-        }
-    }
+    if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS)
+      std::cout << "fps: " << 1.0 / timeDiff << std::endl;
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+      glfwSetWindowShouldClose(window, 1);
+  }
   
     glfwTerminate();
     return 0;
