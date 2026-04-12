@@ -399,7 +399,8 @@ int main(void)
     glfwPollEvents();
 
     // Camera movement
-    float moveRatePerFrame = 0.005f;
+    float moveRatePerFrame = 0.01f;
+    float turnRatePerFrame = 0.001f;
     if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
       m_pos = m_pos + -m_W * moveRatePerFrame;
     else if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
@@ -412,6 +413,30 @@ int main(void)
       m_pos = m_pos + m_V * moveRatePerFrame;
     else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
       m_pos = m_pos - m_V * moveRatePerFrame;
+
+    // Camera rotations
+    if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+      glm::mat4 turn = glm::rotate(glm::mat4(1.0f), turnRatePerFrame, glm::vec3(0,1,0));
+      m_U = glm::vec3(turn * glm::vec4(m_U, 0.0f));
+      m_V = glm::vec3(turn * glm::vec4(m_V, 0.0f));
+      m_W = glm::vec3(turn * glm::vec4(m_W, 0.0f));
+    }
+    if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+      glm::mat4 turn = glm::rotate(glm::mat4(1.0f), -turnRatePerFrame, glm::vec3(0,1,0));
+      m_U = glm::vec3(turn * glm::vec4(m_U, 0.0f));
+      m_V = glm::vec3(turn * glm::vec4(m_V, 0.0f));
+      m_W = glm::vec3(turn * glm::vec4(m_W, 0.0f));
+    }
+    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+      glm::mat4 turn = glm::rotate(glm::mat4(1.0f), turnRatePerFrame, m_U);
+      m_V = glm::vec3(turn * glm::vec4(m_V, 0.0f));
+      m_W = glm::vec3(turn * glm::vec4(m_W, 0.0f));
+    }
+    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+      glm::mat4 turn = glm::rotate(glm::mat4(1.0f), -turnRatePerFrame, m_U);
+      m_V = glm::vec3(turn * glm::vec4(m_V, 0.0f));
+      m_W = glm::vec3(turn * glm::vec4(m_W, 0.0f));
+    }
 
 
     if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS)
