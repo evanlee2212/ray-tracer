@@ -2,6 +2,8 @@
 
 A CPU ray tracer supporting perspective cameras, triangle and sphere primitives, and Lambertian, Blinn-Phong, and mirror shading. Output is a PNG image. Scenes can be defined programmatically or loaded from JSON scene files.
 
+Also includes an OpenGL rasterizer for real-time interactive scene viewing.
+
 ---
 
 ## Dependencies
@@ -133,6 +135,39 @@ Supported types:
 
 ---
 
+### OpenGL Rasterizer (rasterizer.exe)
+
+The rasterizer provides a real-time interactive view of your scene using OpenGL.
+
+```bash
+./rasterizer.exe
+```
+
+Place your shader files in the same directory as the executable before running:
+- `vertexShader_PrepForPerFragment.glsl`
+- `fragmentShader_Lambertian.glsl`
+
+To load a triangle mesh from a file, place `trillist.dat` (comma-separated vertex positions) in the same directory as the executable.
+
+#### Camera Controls
+
+| Key | Action |
+|-----|--------|
+| `E` | Move forward |
+| `Q` | Move backward |
+| `A` | Strafe left |
+| `D` | Strafe right |
+| `W` | Move up |
+| `S` | Move down |
+| `←` Left Arrow | Rotate camera left (yaw) |
+| `→` Right Arrow | Rotate camera right (yaw) |
+| `↑` Up Arrow | Rotate camera up (pitch) |
+| `↓` Down Arrow | Rotate camera down (pitch) |
+| `T` | Print current FPS to console |
+| `Escape` | Close the window |
+
+---
+
 ## Default Scene (testing.exe)
 
 The default scene contains:
@@ -143,6 +178,36 @@ The default scene contains:
 - A left sphere (red, Blinn-Phong)
 - A point light at `(5, -15, 0)`
 - Camera positioned at `(0, 0, -5)`
+
+---
+
+## Ray Tracer vs. Rasterizer: Visual Differences
+
+The ray tracer and rasterizer produce images of the same scene but differ significantly in how they compute the final image.
+
+### Rendering Approach
+
+The ray tracer simulates light by casting rays from the camera into the scene and computing intersections mathematically. The rasterizer works in the opposite direction — it transforms geometry through a series of matrix operations and projects triangles onto the screen, then shades each pixel using interpolated per-fragment values.
+
+### Shadows
+
+The ray tracer supports **hard shadows** natively. When a ray hits a surface, a shadow ray is cast toward each light source. If that ray is blocked, the point is in shadow. The rasterizer as implemented here has **no shadow support** — all geometry is lit regardless of whether other objects are between it and the light.
+
+### Reflections and Mirror Shading
+
+The ray tracer supports **recursive mirror reflections** by spawning secondary rays. The rasterizer does not support reflections — mirror surfaces cannot be represented without additional techniques like cube maps or screen-space reflections, none of which are implemented here.
+
+### Shading Quality
+
+Both renderers implement Blinn-Phong shading, but the ray tracer computes lighting at exact ray-surface intersection points. The rasterizer uses **per-fragment shading**, interpolating surface normals and light directions across each triangle. The results are visually similar for dense meshes but the rasterizer can show shading artifacts on coarse geometry.
+
+### Geometry Representation
+
+The ray tracer intersects rays against mathematical primitives — spheres are perfectly smooth regardless of complexity. The rasterizer approximates all geometry as **triangle meshes**, so spheres appear faceted unless subdivided finely enough.
+
+### Performance
+
+The rasterizer runs in **real time** (60+ FPS) by exploiting GPU parallelism. The ray tracer is a CPU-based offline renderer — even a simple scene at moderate resolution can take seconds to minutes to render. The tradeoff is visual fidelity: the ray tracer produces physically accurate shadows, reflections, and lighting that the rasterizer cannot match without significant additional complexity.
 
 ---
 
@@ -172,7 +237,7 @@ cs4212StarterCode/
 ├── JSONSceneLoader/  # JSON scene parser and loader
 ├── src/              # Main entry point
 ├── examples/         # Example programs
-├── OpenGL/           # OpenGL viewer
+├── OpenGL/           # OpenGL rasterizer
 ├── utests/           # Catch2 unit tests
 ├── cmake/            # CMake modules
 └── CMakeLists.txt
