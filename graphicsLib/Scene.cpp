@@ -74,7 +74,7 @@ void Scene::generateScene()   {
       }
 
       c = c / (float)(rpp_NSquare * rpp_NSquare);
-      fb.setPixelColor(x, y, c);
+      fb.setPixelColor(x, (fb.getHeight() - 1 - y), c);
     }
   }
 }

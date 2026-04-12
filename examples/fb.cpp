@@ -56,6 +56,11 @@ int main(int argc, char* argv[]) {
 
   Scene world(width, height);
 
+  PerspectiveCamera cam = PerspectiveCamera(width, height);
+  cam.moveTo(vec3(0, 1, 0));
+  cam.lookAt(vec3(0, 1, -8));
+  world.addCamera(std::make_shared<PerspectiveCamera>(cam));
+
   auto lambertian  = std::make_shared<LambertianShader>(world);
   auto blinnPhong = std::make_shared<BlinnPhongShader>(world);
   auto mirror = std::make_shared<MirrorShader>(world);
@@ -94,9 +99,7 @@ int main(int argc, char* argv[]) {
     color(0, 0, 255)));
 
   world.generateScene();
-
   world.exportScene(filename);
-
   return 0;
 
 };
