@@ -22,3 +22,11 @@ endif()
 target_link_libraries (glfwExample PRIVATE PNG::PNG)
 target_link_libraries (glfwExample PRIVATE ZLIB::ZLIB)
 
+add_executable( silverLevel
+        silverLever.cpp
+        GLSL.cpp GLSL.h
+)
+
+target_link_libraries(silverLevel
+        PRIVATE GLEW::GLEW glfw OpenGL::GL PNG::PNG ZLIB::ZLIB
+)

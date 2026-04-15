@@ -3,7 +3,6 @@
 #include <vector>
 #include <cmath>
 #include <fstream>
-#include <sstream>
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -157,7 +156,7 @@ std::vector<float> read_in_vertex_file(const std::string& filepath)
 
 int main(void)
 {
-  // Initialize the library
+  /* Initialize the library */
   if (!glfwInit()) {
     exit (-1);
   }
@@ -168,7 +167,7 @@ int main(void)
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
   glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
-  // Create a windowed mode window and its OpenGL context
+  /* Create a windowed mode window and its OpenGL context */
   int winWidth = 1000;
   float aspectRatio = 1.0; // 16.0 / 9.0; // winWidth / (float)winHeight;
   int winHeight = winWidth / aspectRatio;
@@ -181,7 +180,7 @@ int main(void)
     return -1;
   }
 
-  // Make the window's context current
+  /* Make the window's context current */
   glfwMakeContextCurrent(window);
 
   glewExperimental = GL_TRUE;
@@ -248,7 +247,33 @@ int main(void)
   GLuint pedestalVAO = loadSphere(vboPedestal, pedestalIndices);
   int pedestalIndexCount = pedestalIndices.size();
 
-  // Bunny VBO (your existing trilist)
+  struct FixedSphere {
+    GLuint vao;
+    int indexCount;
+    glm::vec3 position;
+    glm::vec3 color;
+  };
+
+  std::vector<FixedSphere> fixedSpheres;
+
+  struct FixedSpec { float r; glm::vec3 pos; glm::vec3 col; };
+  std::vector<FixedSpec> fixedSpecs = {
+    { 0.6f, glm::vec3( 3.0f, -1.5f, -10.0f), glm::vec3(1.0f, 0.2f, 0.2f) }, // red right
+    { 0.6f, glm::vec3(-3.0f, -1.5f, -10.0f), glm::vec3(0.2f, 0.4f, 1.0f) }, // blue left
+    { 0.5f, glm::vec3( 0.0f, -1.5f, -13.0f), glm::vec3(0.2f, 1.0f, 0.4f) }, // green behind
+    { 0.4f, glm::vec3( 2.0f,  0.5f, -12.0f), glm::vec3(1.0f, 0.8f, 0.1f) }, // gold upper right
+    { 0.4f, glm::vec3(-2.0f,  0.5f, -12.0f), glm::vec3(1.0f, 0.3f, 0.8f) }, // pink upper left
+};
+
+  for (auto& s : fixedSpecs) {
+    std::vector<float> vbo;
+    std::vector<unsigned int> idx;
+    generateSphere(s.pos, s.r, 20, 20, vbo);
+    generateSphereIndices(20, 20, idx);
+    fixedSpheres.push_back({ loadSphere(vbo, idx), (int)idx.size(), s.pos, s.col });
+  }
+
+  // Bunny VBO
   std::vector<float> vbo_listOfTriangles = read_in_vertex_file("../trilist.dat");
   GLuint bunnyVBO, bunnyVAO;
   glGenBuffers(1, &bunnyVBO);
@@ -347,7 +372,7 @@ int main(void)
 while (!glfwWindowShouldClose(window))
 {
     // Animate light orbiting the scene
-    lightAngle += 0.005f;
+    //lightAngle += 0.005f;
     lightPosWorld = glm::vec4(
         12.0f * cos(lightAngle),
         10.0f,
@@ -374,7 +399,9 @@ while (!glfwWindowShouldClose(window))
 
     // Surrounding spheres
     float t = glfwGetTime();
-
+    for (auto& s: fixedSpheres) {
+      drawLamb(s.vao, s.indexCount, s.color, glm::mat4(1.0f), M_view, true);
+    }
 
     shader_lamb.deactivate();
 
@@ -397,7 +424,7 @@ while (!glfwWindowShouldClose(window))
 
     // Camera movement
     float moveRatePerFrame = 0.01f;
-    float turnRatePerFrame = 0.0005f;
+    float turnRatePerFrame = 0.001f;
     if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
       m_pos = m_pos + -m_W * moveRatePerFrame;
     else if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
