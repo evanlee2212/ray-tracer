@@ -30,3 +30,12 @@ add_executable( silverLevel
 target_link_libraries(silverLevel
         PRIVATE GLEW::GLEW glfw OpenGL::GL PNG::PNG ZLIB::ZLIB
 )
+
+add_executable( textureCube
+        textureCube.cpp
+        GLSL.cpp GLSL.h
+)
+
+target_link_libraries(textureCube
+        PRIVATE GLEW::GLEW glfw OpenGL::GL PNG::PNG ZLIB::ZLIB
+)

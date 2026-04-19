@@ -41,8 +41,8 @@ void generateSphere(glm::vec3 center, float radius, int slices, int stacks, std:
       float nz = z / radius;
 
       //Texture Coords
-      float u = (float)j / slices;
-      float v = (float)i / stacks;
+      float u = (float)i / slices;
+      float v = (float)j / stacks;
 
       vbo.push_back(center.x + x);
       vbo.push_back(center.y + y);
@@ -98,11 +98,11 @@ GLuint loadSphere(std::vector<float> vbo, std::vector<unsigned int> indices)
 
   //Position
   glEnableVertexAttribArray(0);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void *)0);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void *)0);
 
   //Normal
   glEnableVertexAttribArray(1);
-  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void *)(3 * sizeof(GLfloat)));
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void *)(3 * sizeof(GLfloat)));
 
   //Texture Coords
   glEnableVertexAttribArray(2);
@@ -248,24 +248,27 @@ int main(void)
   glm::vec4 lightPosWorld(5.0f, 3.0f, 5.0f, 1.0f);
 
   //Loading Texture
-  auto loadTexture = [](const std::string& path) -> GLuint {
-    png::image<png::rgb_pixel> img;
-    img.read(path);
+  std::string texFilename = "../textures/textureAtlas.png";
+  std::cout << "Reading texture map data from file: " << texFilename << std::endl;
+  png::image<png::rgb_pixel> texPNGImage;
+  texPNGImage.read(texFilename);
 
-    int w = img.get_width();
-    int h = img.get_height();
+  int pngWidth = texPNGImage.get_width();
+  int pngHeight = texPNGImage.get_height();
 
-    std::vector<float> data(w * h * 3);
-    size_t idx = 0;
-    for (int row = 0; row < h; row++) {
-      for (int col = 0; col < w; col++) {
-        png::rgb_pixel p = img[h - row - 1][col];  // flip Y
-        data[idx++] = p.red   / 255.0f;
-        data[idx++] = p.green / 255.0f;
-        data[idx++] = p.blue  / 255.0f;
-      }
+  std::vector<float> texData(pngHeight * pngWidth * 3);
+
+  size_t idx = 0;
+  for (size_t row = 0; row < pngHeight; ++row) {
+    for (size_t col = 0; col < pngWidth; ++col) {
+      png::rgb_pixel pixel = texPNGImage[pngHeight - row - 1][col]; // flip of height!!!
+      texData[idx++] = pixel.red / 255.0f;
+      texData[idx++] = pixel.green / 255.0f;
+      texData[idx++] = pixel.blue / 255.0f;
     }
+  }
 
+    //Transfer texture to GPU
     GLuint texID;
     glGenTextures(1, &texID);
     glBindTexture(GL_TEXTURE_2D, texID);
@@ -273,28 +276,85 @@ int main(void)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB, GL_FLOAT, data.data());
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB,
+                 pngWidth, pngHeight,
+                 0, GL_RGB, GL_FLOAT, texData.data());
     glBindTexture(GL_TEXTURE_2D, 0);
-    return texID;
-  };
 
-  GLuint diffuseTexID  = loadTexture("../textures/earth_daymap_2k.png");
-  GLuint specularTexID = loadTexture("../textures/earth_specular_map_2k.png");
-
-    // Sphere Data
+    // Box Data
     /** struct vertexData {
       glm::vec3 pos;
       glm::vec3 normal;
       glm::vec2 texCoord;
     }; **/
 
-    std::vector<float> vboTexSphere;
-    std::vector<unsigned int> texSphereIndices;
-  generateSphere(glm::vec3(0,0,-10), 2.0f, 40, 40, vboTexSphere);
-  generateSphereIndices(40, 40, texSphereIndices);
-  GLuint texSphereVAO = loadSphere(vboTexSphere, texSphereIndices);
-  int texSphereIndexCount = texSphereIndices.size();
+    std::vector<float> boxVBO = {
+      //Position (3) + Normal (3) + TexCoord (2)
 
+      //bottom-left quadrant of texture
+      -1.0f, -1.0f,  1.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,
+       1.0f, -1.0f,  1.0f,   0.0f, 0.0f, 1.0f,   0.5f, 0.0f,
+       1.0f,  1.0f,  1.0f,   0.0f, 0.0f, 1.0f,   0.5f, 0.5f,
+
+       1.0f,  1.0f,  1.0f,   0.0f, 0.0f, 1.0f,   0.5f, 0.5f,
+      -1.0f,  1.0f,  1.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.5f,
+      -1.0f, -1.0f,  1.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,
+
+      //bottom-right quadrant of texture
+       1.0f, -1.0f,  1.0f,   1.0f, 0.0f, 0.0f,   0.5f, 0.0f,
+       1.0f, -1.0f, -1.0f,   1.0f, 0.0f, 0.0f,   1.0f, 0.0f,
+       1.0f,  1.0f, -1.0f,   1.0f, 0.0f, 0.0f,   1.0f, 0.5f,
+
+       1.0f,  1.0f, -1.0f,   1.0f, 0.0f, 0.0f,   1.0f, 0.5f,
+       1.0f,  1.0f,  1.0f,   1.0f, 0.0f, 0.0f,   0.5f, 0.5f,
+       1.0f, -1.0f,  1.0f,   1.0f, 0.0f, 0.0f,   0.5f, 0.0f,
+
+      // top-left quadrant of texture
+      -1.0f,  1.0f,  1.0f,   0.0f, 1.0f, 0.0f,   0.0f, 0.5f,
+       1.0f,  1.0f,  1.0f,   0.0f, 1.0f, 0.0f,   0.5f, 0.5f,
+       1.0f,  1.0f, -1.0f,   0.0f, 1.0f, 0.0f,   0.5f, 1.0f,
+
+       1.0f,  1.0f, -1.0f,   0.0f, 1.0f, 0.0f,   0.5f, 1.0f,
+      -1.0f,  1.0f, -1.0f,   0.0f, 1.0f, 0.0f,   0.0f, 1.0f,
+      -1.0f,  1.0f,  1.0f,   0.0f, 1.0f, 0.0f,   0.0f, 0.5f,
+
+      // top-right quadrant of texture
+       1.0f, -1.0f, -1.0f,   0.0f, 0.0f, -1.0f,  0.5f, 0.5f,
+      -1.0f, -1.0f, -1.0f,   0.0f, 0.0f, -1.0f,  1.0f, 0.5f,
+      -1.0f,  1.0f, -1.0f,   0.0f, 0.0f, -1.0f,  1.0f, 1.0f,
+
+      -1.0f,  1.0f, -1.0f,   0.0f, 0.0f, -1.0f,  1.0f, 1.0f,
+       1.0f,  1.0f, -1.0f,   0.0f, 0.0f, -1.0f,  0.5f, 1.0f,
+       1.0f, -1.0f, -1.0f,   0.0f, 0.0f, -1.0f,  0.5f, 0.5f,
+  };
+
+    // VBO and VAO
+    GLuint boxVBOID, boxVAO;
+    glGenBuffers(1, &boxVBOID);
+    glBindBuffer(GL_ARRAY_BUFFER, boxVBOID);
+    glBufferData(GL_ARRAY_BUFFER, boxVBO.size() * sizeof(float), boxVBO.data(), GL_STATIC_DRAW);
+
+    glGenVertexArrays(1, &boxVAO);
+    glBindVertexArray(boxVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, boxVBOID);
+
+    // Position
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+
+    // Normal
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+
+    // Texture coords
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+
+    glBindVertexArray(0);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texID);
+    glUniform1i(texID, 0);
     // ===================== SHADERS =====================
 
     // Lambertian shader
@@ -328,7 +388,6 @@ int main(void)
     GLuint bp_ks       = shader_bp.createUniform("ks");
     GLuint bp_phong    = shader_bp.createUniform("phongExp");
     GLuint bp_texUnit  = shader_bp.createUniform("textureUnit");
-    GLuint bp_specTex  = shader_bp.createUniform("specularTex");
 
     glm::vec3 intensity(1.0f, 1.0f, 1.0f);
     glm::vec3 la(0.15f, 0.15f, 0.15f);
@@ -342,8 +401,6 @@ int main(void)
     glUniform3fv(bp_ka,        1, glm::value_ptr(ka));
     glUniform3fv(bp_ks,        1, glm::value_ptr(ks));
     glUniform1f(bp_phong,      phongExp);
-    glUniform1i(bp_texUnit,  0);
-    glUniform1i(bp_specTex,  1);
     shader_bp.deactivate();
 
     // Camera
@@ -382,10 +439,6 @@ int main(void)
     // ===================== RENDER LOOP =====================
     while (!glfwWindowShouldClose(window))
     {
-      endFrameTime = glfwGetTime();
-      timeDiff = endFrameTime - startFrameTime;
-      startFrameTime = glfwGetTime();
-
       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
       glm::mat4 M_view = glm::lookAt(m_pos, m_pos - m_W, m_V);
 
@@ -408,21 +461,17 @@ int main(void)
       glUniform4fv(bp_light, 1, glm::value_ptr(lightPosWorld));
 
       glActiveTexture(GL_TEXTURE0);
-      glBindTexture(GL_TEXTURE_2D, diffuseTexID);
-
-      glActiveTexture(GL_TEXTURE1);
-      glBindTexture(GL_TEXTURE_2D, specularTexID);
-
+      glBindTexture(GL_TEXTURE_2D, texID);
       glUniform1i(bp_texUnit, 0);
 
-      glm::mat4 globeModel = glm::mat4(1.0f);
+      glm::mat4 boxModel = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -10.0f));
       //boxModel = glm::scale(boxModel, glm::vec3(3.0f));
-      glm::mat4 globeNormal = glm::mat4(glm::transpose(glm::inverse(glm::mat3(M_view * globeModel))));
-      glUniformMatrix4fv(bp_model, 1, GL_FALSE, glm::value_ptr(globeModel));
-      glUniformMatrix4fv(bp_normal, 1, GL_FALSE, glm::value_ptr(globeNormal));
+      glm::mat4 boxNormal = glm::mat4(glm::transpose(glm::inverse(glm::mat3(M_view * boxModel))));
+      glUniformMatrix4fv(bp_model, 1, GL_FALSE, glm::value_ptr(boxModel));\
+      glUniformMatrix4fv(bp_normal, 1, GL_FALSE, glm::value_ptr(boxNormal));
 
-      glBindVertexArray(texSphereVAO);
-      glDrawElements(GL_TRIANGLES, texSphereIndexCount, GL_UNSIGNED_INT, 0);
+      glBindVertexArray(boxVAO);
+      glDrawArrays(GL_TRIANGLES, 0, boxVBO.size() / 8);
       glBindVertexArray(0);
 
       shader_bp.deactivate();
@@ -480,4 +529,3 @@ int main(void)
     glfwTerminate();
     return 0;
 };
-

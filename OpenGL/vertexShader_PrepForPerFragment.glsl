@@ -1,6 +1,7 @@
 #version 330 core
 layout(location=0) in vec3 in_Position;
 layout(location=1) in vec3 in_Normal;
+layout(location=2) in vec2 in_TexCoord;
 
 uniform mat4 projMatrix;
 uniform mat4 viewMatrix;
@@ -10,6 +11,7 @@ uniform vec4 lightPosWorld;
 
 out vec3 normal;
 out vec3 lightDir;
+out vec2 tCoord;
 
 void main(void)
 {
@@ -20,4 +22,6 @@ void main(void)
     lightDir = normalize(lightPos.xyz - pos.xyz);
 
     gl_Position = projMatrix * pos;
+
+    tCoord = in_TexCoord;
 }
