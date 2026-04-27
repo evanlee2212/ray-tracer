@@ -3,6 +3,16 @@ include_directories(${CMAKE_SOURCE_DIR}/src)
 add_executable (glfwExample
   glfwExample.cpp 
   GLSL.cpp GLSL.h
+        Mesh.cpp
+        Mesh.h
+        Sphere.cpp
+        Sphere.h
+        Trimesh.cpp
+        Trimesh.h
+        Camera.cpp
+        Camera.h
+        Texture.cpp
+        Texture.h
 )
 
 target_link_libraries (glfwExample PRIVATE GLEW::GLEW)

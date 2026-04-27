@@ -1,9 +1,5 @@
 #include <cstdlib>
 #include <iostream>
-#include <vector>
-#include <cmath>
-#include <fstream>
-#include <sstream>
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -12,472 +8,208 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
-#include "../src/png++/png.hpp"
 
 #include "GLSL.h"
+#include "Camera.h"
+#include "Sphere.h"
+#include "TriMesh.h"
+#include "Texture.h"
 
-int CheckGLErrors(const char *s)
+// Helpers
+
+
+static glm::mat4 normalMatrix(const glm::mat4& view, const glm::mat4& model)
 {
-    int errCount = 0;
-    return errCount;
+    return glm::mat4(glm::transpose(glm::inverse(glm::mat3(view * model))));
 }
 
-void generateSphere(glm::vec3 center, float radius, int slices, int stacks, std::vector<float>& vbo)
+int main()
 {
-  for (int i = 0; i <= stacks; i++) {
-    float theta = i * std::numbers::pi / stacks;
+    // GLFW + window
+    if (!glfwInit()) { return -1; }
 
-    for (int j = 0; j <= slices; j++) {
-      float phi = j * 2.0f * std::numbers::pi / slices;
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
-      // Vertices
-      float x = radius * sin(theta) * cos(phi);
-      float y = radius * cos(theta);
-      float z = radius * sin(theta) * sin(phi);
+    constexpr int   WIN_WIDTH = 1000;
+    constexpr float ASPECT    = 1.0f;
 
-      // Normals
-      float nx = x / radius;
-      float ny = y / radius;
-      float nz = z / radius;
-
-      //Texture Coords
-      float u = (float)j / slices;
-      float v = (float)i / stacks;
-
-      vbo.push_back(center.x + x);
-      vbo.push_back(center.y + y);
-      vbo.push_back(center.z + z);
-      vbo.push_back(nx);
-      vbo.push_back(ny);
-      vbo.push_back(nz);
-      vbo.push_back(u);
-      vbo.push_back(v);
-    }
-  }
-}
-
-void generateSphereIndices(int stacks, int slices, std::vector<unsigned int>& indices)
-{
-  for (int i = 0; i < stacks; i++) {
-    for (int j = 0; j < slices; j++) {
-      int row1 = i * (slices + 1);
-      int row2 = (i + 1) * (slices + 1);
-
-      // Triangle 1
-      indices.push_back(row1 + j);
-      indices.push_back(row1 + j + 1);
-      indices.push_back(row2 + j + 1);
-
-      // Triangle 2
-      indices.push_back(row1 + j);
-      indices.push_back(row2 + j + 1);
-      indices.push_back(row2 + j);
-    }
-  }
-}
-
-GLuint loadSphere(std::vector<float> vbo, std::vector<unsigned int> indices)
-{
-  GLuint sphereVBO;
-  glGenBuffers(1, &sphereVBO);
-  glBindBuffer(GL_ARRAY_BUFFER, sphereVBO);
-  glBufferData(GL_ARRAY_BUFFER, vbo.size() * sizeof(float), vbo.data(), GL_STATIC_DRAW);
-
-  // EBO
-  GLuint sphereEBO;
-  glGenBuffers(1, &sphereEBO);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, sphereEBO);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
-
-  // VAO
-  GLuint sphereVAO;
-  glGenVertexArrays(1, &sphereVAO);
-  glBindVertexArray(sphereVAO);
-  glBindBuffer(GL_ARRAY_BUFFER, sphereVBO);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, sphereEBO);
-
-  //Position
-  glEnableVertexAttribArray(0);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void *)0);
-
-  //Normal
-  glEnableVertexAttribArray(1);
-  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void *)(3 * sizeof(GLfloat)));
-
-  //Texture Coords
-  glEnableVertexAttribArray(2);
-  glVertexAttribPointer(2,2,GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6*sizeof(float)));
-
-  glBindVertexArray(0);
-  return sphereVAO;
-}
-
-std::vector<float> read_in_vertex_file(const std::string& filepath)
-{
-  // List of triangles
-  std::ifstream file(filepath);
-  if (!file.is_open()) {
-    std::cerr << "Failed to open file" << std::endl;
-  }
-
-  std::vector<glm::vec3> positions;
-  std::string tokenX, tokenY, tokenZ;
-
-  while (getline(file, tokenX, ',') && getline(file, tokenY, ',') && getline(file, tokenZ, ',')) {
-    try {
-      float x = std::stof(tokenX);
-      float y = std::stof(tokenY);
-      float z = std::stof(tokenZ);
-
-      positions.push_back(glm::vec3(x, y, z));
-
-    } catch (const std::invalid_argument &e) {
-      std::cerr << "Invalid token(s): " << tokenX << ' ' << tokenY << ' ' << tokenZ << std::endl;
-    }
-  }
-  file.close();
-  std::cout << "Vertices read: " << positions.size() / 6 << std::endl;
-
-  // Calculate Normals for each vertex in list
-  std::vector<glm::vec3> smoothNormals(positions.size(), glm::vec3(0.0f));
-  for (int i = 0; i + 2 < positions.size(); i += 3) {
-    glm::vec3 v0 = positions[i + 0];
-    glm::vec3 v1 = positions[i + 1];
-    glm::vec3 v2 = positions[i + 2];
-
-    // Face normal
-    glm::vec3 edge1 = v1 - v0;
-    glm::vec3 edge2 = v2 - v0;
-    glm::vec3 faceNormal = glm::normalize(glm::cross(edge1, edge2));
-
-    smoothNormals[i + 0] += faceNormal;
-    smoothNormals[i + 1] += faceNormal;
-    smoothNormals[i + 2] += faceNormal;
-  }
-
-  // Build VBO
-  std::vector<float> vbo_listOfTriangles;
-  for (int i = 0; i < positions.size(); i++) {
-    glm::vec3 v = positions[i];
-    glm::vec3 n = glm::normalize(smoothNormals[i]);
-
-    vbo_listOfTriangles.push_back(v.x);
-    vbo_listOfTriangles.push_back(v.y);
-    vbo_listOfTriangles.push_back(v.z);
-    vbo_listOfTriangles.push_back(n.x);
-    vbo_listOfTriangles.push_back(n.y);
-    vbo_listOfTriangles.push_back(n.z);
-  }
-  return vbo_listOfTriangles;
-}
-
-int main(void)
-{
-  // Initialize the library
-  if (!glfwInit()) {
-    exit (-1);
-  }
-  // throw std::runtime_error("Error! initialization of glfw failed!");
-
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
-  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-
-  // Create a windowed mode window and its OpenGL context
-  int winWidth = 1000;
-  float aspectRatio = 1.0; // 16.0 / 9.0; // winWidth / (float)winHeight;
-  int winHeight = winWidth / aspectRatio;
-
-  GLFWwindow* window = glfwCreateWindow(winWidth, winHeight, "GLFW Example", NULL, NULL);
-  if (!window) {
-    std::cerr << "GLFW did not create a window!" << std::endl;
-
-    glfwTerminate();
-    return -1;
-  }
-
-  // Make the window's context current
-  glfwMakeContextCurrent(window);
-
-  glewExperimental = GL_TRUE;
-  GLenum err=glewInit();
-  if(err != GLEW_OK) {
-    std::cerr <<"GLEW Error! glewInit failed, exiting."<< std::endl;
-    exit(EXIT_FAILURE);
-  }
-
-  const GLubyte* renderer = glGetString (GL_RENDERER);
-  const GLubyte* version = glGetString (GL_VERSION);
-  std::cout << "Renderer: " << renderer << std::endl;
-  std::cout << "OpenGL version supported: " << version << std::endl;
-
-  glEnable(GL_DEPTH_TEST);
-  glDepthFunc(GL_LESS);
-  glClearColor(0.5, 0.7, .8, 1.0);
-
-  int fb_width, fb_height;
-  glfwGetFramebufferSize(window, &fb_width, &fb_height);
-  glViewport(0, 0, fb_width, fb_height);
-
-  // Need to set a projection matrix that fits the aspect ratio set
-  // by the window frame.
-  //
-  // The ortho parameters, in order: left, right, bottom, top, zNear, zFar
-  float halfWidth = 15.0 / 2.0;
-  float halfHeight = halfWidth;
-
-  float left = -halfWidth;
-  float right = halfWidth;
-
-  float bottom = -halfHeight;
-  float top = halfHeight;
-
-  float near = 5.0f;
-  float far = -5.0f;
-
-  //glm::mat4 M_ortho = glm::ortho(-halfWidth, halfWidth, -halfHeight, halfHeight, near, far);
-  glm::mat4 perspMat = glm::perspective(glm::radians(45.0f), 1.0f, 0.1f, 100.0f);
-
-  GLint major_version;
-  glGetIntegerv(GL_MAJOR_VERSION, &major_version);
-  std::cout << "GL_MAJOR_VERSION: " << major_version << std::endl;
-  // ===================== SCENE SETUP =====================
-
-  // Light
-  glm::vec4 lightPosWorld(5.0f, 3.0f, 5.0f, 1.0f);
-
-  //Loading Texture
-  auto loadTexture = [](const std::string& path) -> GLuint {
-    png::image<png::rgb_pixel> img;
-    img.read(path);
-
-    int w = img.get_width();
-    int h = img.get_height();
-
-    std::vector<float> data(w * h * 3);
-    size_t idx = 0;
-    for (int row = 0; row < h; row++) {
-      for (int col = 0; col < w; col++) {
-        png::rgb_pixel p = img[h - row - 1][col];  // flip Y
-        data[idx++] = p.red   / 255.0f;
-        data[idx++] = p.green / 255.0f;
-        data[idx++] = p.blue  / 255.0f;
-      }
+    GLFWwindow* window = glfwCreateWindow(WIN_WIDTH, WIN_WIDTH / ASPECT,
+                                          "OpenGL Rasterizer", nullptr, nullptr);
+    if (!window) {
+        std::cerr << "GLFW window creation failed\n";
+        glfwTerminate();
+        return -1;
     }
 
-    GLuint texID;
-    glGenTextures(1, &texID);
-    glBindTexture(GL_TEXTURE_2D, texID);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB, GL_FLOAT, data.data());
-    glBindTexture(GL_TEXTURE_2D, 0);
-    return texID;
-  };
+    glfwMakeContextCurrent(window);
 
-  GLuint diffuseTexID  = loadTexture("../textures/earth_daymap_2k.png");
-  GLuint specularTexID = loadTexture("../textures/earth_specular_map_2k.png");
+    glewExperimental = GL_TRUE;
+    if (glewInit() != GLEW_OK) {
+        std::cerr << "GLEW init failed\n";
+        return -1;
+    }
 
-    // Sphere Data
-    /** struct vertexData {
-      glm::vec3 pos;
-      glm::vec3 normal;
-      glm::vec2 texCoord;
-    }; **/
+    std::cout << "Renderer: "               << glGetString(GL_RENDERER) << '\n';
+    std::cout << "OpenGL version supported: "<< glGetString(GL_VERSION)  << '\n';
 
-    std::vector<float> vboTexSphere;
-    std::vector<unsigned int> texSphereIndices;
-  generateSphere(glm::vec3(0,0,-10), 2.0f, 40, 40, vboTexSphere);
-  generateSphereIndices(40, 40, texSphereIndices);
-  GLuint texSphereVAO = loadSphere(vboTexSphere, texSphereIndices);
-  int texSphereIndexCount = texSphereIndices.size();
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
+    glClearColor(0.5f, 0.7f, 0.8f, 1.0f);
 
-    // ===================== SHADERS =====================
+    int fb_w, fb_h;
+    glfwGetFramebufferSize(window, &fb_w, &fb_h);
+    glViewport(0, 0, fb_w, fb_h);
 
-    // Lambertian shader
+    // Projection
+    const glm::mat4 perspMat = glm::perspective(glm::radians(45.0f),
+                                                 ASPECT, 0.1f, 100.0f);
+
+    // Scene objects
+    const glm::vec4 lightPosWorld(5.0f, 3.0f, 5.0f, 1.0f);
+
+    // Globe sphere (textured, Blinn-Phong)
+    Sphere globe(glm::vec3(0, 0, -10), 2.0f, 40, 40);
+
+    // Bunny mesh (Lambertian)
+    TriMesh bunny("../trilist.dat");
+
+    // Textures
+    Texture diffuseTex ("../textures/earth_daymap_2k.png");
+    Texture specularTex("../textures/earth_specular_map_2k.png");
+
+    // Camera
+    Camera camera(glm::vec3(0, 2, 5), 5.0f, 60.0f);
+
+    // Shaders
+
+    // Lambertian
     sivelab::GLSLObject shader_lamb;
-    shader_lamb.addShader("vertexShader_PrepForPerFragment.glsl", sivelab::GLSLObject::VERTEX_SHADER);
-    shader_lamb.addShader("fragmentShader_Lambertian.glsl", sivelab::GLSLObject::FRAGMENT_SHADER);
+    shader_lamb.addShader("vertexShader_PrepForPerFragment.glsl",
+                          sivelab::GLSLObject::VERTEX_SHADER);
+    shader_lamb.addShader("fragmentShader_Lambertian.glsl",
+                          sivelab::GLSLObject::FRAGMENT_SHADER);
     shader_lamb.createProgram();
 
-    GLuint l_proj   = shader_lamb.createUniform("projMatrix");
-    GLuint l_view   = shader_lamb.createUniform("viewMatrix");
-    GLuint l_model  = shader_lamb.createUniform("modelMatrix");
-    GLuint l_normal = shader_lamb.createUniform("normalMatrix");
-    GLuint l_light  = shader_lamb.createUniform("lightPosWorld");
-    GLuint l_diff   = shader_lamb.createUniform("diffuseComponent");
+    const GLuint l_proj   = shader_lamb.createUniform("projMatrix");
+    const GLuint l_view   = shader_lamb.createUniform("viewMatrix");
+    const GLuint l_model  = shader_lamb.createUniform("modelMatrix");
+    const GLuint l_normal = shader_lamb.createUniform("normalMatrix");
+    const GLuint l_light  = shader_lamb.createUniform("lightPosWorld");
+    const GLuint l_diff   = shader_lamb.createUniform("diffuseComponent");
 
-    // Blinn-Phong shader
+    // Blinn-Phong (textured)
     sivelab::GLSLObject shader_bp;
-    shader_bp.addShader("vertexShader_BlinnPhong.glsl", sivelab::GLSLObject::VERTEX_SHADER);
-    shader_bp.addShader("fragmentShader_BlinnPhong.glsl", sivelab::GLSLObject::FRAGMENT_SHADER);
+    shader_bp.addShader("vertexShader_BlinnPhong.glsl",
+                        sivelab::GLSLObject::VERTEX_SHADER);
+    shader_bp.addShader("fragmentShader_BlinnPhong.glsl",
+                        sivelab::GLSLObject::FRAGMENT_SHADER);
     shader_bp.createProgram();
 
-    GLuint bp_proj     = shader_bp.createUniform("projMatrix");
-    GLuint bp_view     = shader_bp.createUniform("viewMatrix");
-    GLuint bp_model    = shader_bp.createUniform("modelMatrix");
-    GLuint bp_normal   = shader_bp.createUniform("normalMatrix");
-    GLuint bp_light    = shader_bp.createUniform("lightPosWorld");
-    GLuint bp_intensity= shader_bp.createUniform("intensity");
-    GLuint bp_la       = shader_bp.createUniform("la");
-    GLuint bp_ka       = shader_bp.createUniform("ka");
-    GLuint bp_kd       = shader_bp.createUniform("kd");
-    GLuint bp_ks       = shader_bp.createUniform("ks");
-    GLuint bp_phong    = shader_bp.createUniform("phongExp");
-    GLuint bp_texUnit  = shader_bp.createUniform("textureUnit");
-    GLuint bp_specTex  = shader_bp.createUniform("specularTex");
+    const GLuint bp_proj      = shader_bp.createUniform("projMatrix");
+    const GLuint bp_view      = shader_bp.createUniform("viewMatrix");
+    const GLuint bp_model     = shader_bp.createUniform("modelMatrix");
+    const GLuint bp_normal    = shader_bp.createUniform("normalMatrix");
+    const GLuint bp_light     = shader_bp.createUniform("lightPosWorld");
+    const GLuint bp_intensity = shader_bp.createUniform("intensity");
+    const GLuint bp_la        = shader_bp.createUniform("la");
+    const GLuint bp_ka        = shader_bp.createUniform("ka");
+    const GLuint bp_kd        = shader_bp.createUniform("kd");
+    const GLuint bp_ks        = shader_bp.createUniform("ks");
+    const GLuint bp_phong     = shader_bp.createUniform("phongExp");
+    const GLuint bp_texUnit   = shader_bp.createUniform("textureUnit");
+    const GLuint bp_specTex   = shader_bp.createUniform("specularTex");
 
-    glm::vec3 intensity(1.0f, 1.0f, 1.0f);
-    glm::vec3 la(0.15f, 0.15f, 0.15f);
-    glm::vec3 ka(0.15f, 0.15f, 0.15f);
-    glm::vec3 ks(1.0f, 1.0f, 1.0f);
-    float phongExp = 32.0f;
+    // Upload static uniforms once
+    const glm::vec3 intensity(1.0f);
+    const glm::vec3 la(0.15f), ka(0.15f), ks(1.0f);
+    const float     phongExp = 32.0f;
 
     shader_bp.activate();
     glUniform3fv(bp_intensity, 1, glm::value_ptr(intensity));
     glUniform3fv(bp_la,        1, glm::value_ptr(la));
     glUniform3fv(bp_ka,        1, glm::value_ptr(ka));
     glUniform3fv(bp_ks,        1, glm::value_ptr(ks));
-    glUniform1f(bp_phong,      phongExp);
-    glUniform1i(bp_texUnit,  0);
-    glUniform1i(bp_specTex,  1);
+    glUniform1f (bp_phong,     phongExp);
+    glUniform1i (bp_texUnit,   0);
+    glUniform1i (bp_specTex,   1);
     shader_bp.deactivate();
 
-    // Camera
-    glm::vec3 m_pos(0, 2, 5);
-    glm::vec3 m_U(1,0,0), m_V(0,1,0), m_W(0,0,1);
-
-    // Shader functions
-    auto drawLamb = [&](GLuint vao, int indexCount, glm::vec3 color, glm::mat4 model, glm::mat4 view, bool useElements) {
-      glm::mat4 nm = glm::mat4(glm::transpose(glm::inverse(glm::mat3(view * model))));
-      glUniformMatrix4fv(l_model,  1, GL_FALSE, glm::value_ptr(model));
-      glUniformMatrix4fv(l_normal, 1, GL_FALSE, glm::value_ptr(nm));
-      glUniform3fv(l_diff, 1, glm::value_ptr(color));
-      glBindVertexArray(vao);
-      if (useElements)
-        glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, 0);
-      else
-        glDrawArrays(GL_TRIANGLES, 0, indexCount);
-      glBindVertexArray(0);
+    // Shader Functions
+    auto drawLamb = [&](const auto& mesh, const glm::vec3& color,
+                        const glm::mat4& model, const glm::mat4& view)
+    {
+        glUniformMatrix4fv(l_model,  1, GL_FALSE, glm::value_ptr(model));
+        glUniformMatrix4fv(l_normal, 1, GL_FALSE,
+                           glm::value_ptr(normalMatrix(view, model)));
+        glUniform3fv(l_diff, 1, glm::value_ptr(color));
+        mesh.draw();
     };
 
-    auto drawBP = [&](GLuint vao, int indexCount, glm::vec3 kd, float exp, glm::mat4 model, glm::mat4 view, bool useElements) {
-      glm::mat4 nm = glm::mat4(glm::transpose(glm::inverse(glm::mat3(view * model))));
-      glUniformMatrix4fv(bp_model,  1, GL_FALSE, glm::value_ptr(model));
-      glUniformMatrix4fv(bp_normal, 1, GL_FALSE, glm::value_ptr(nm));
-      glUniform3fv(bp_kd,  1, glm::value_ptr(kd));
-      glUniform1f(bp_phong, exp);
-      glBindVertexArray(vao);
-      if (useElements)
-        glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, 0);
-      else
-        glDrawArrays(GL_TRIANGLES, 0, indexCount);
-      glBindVertexArray(0);
+    auto drawBP = [&](const auto& mesh, const glm::vec3& kd, float exp,
+                      const glm::mat4& model, const glm::mat4& view)
+    {
+        glUniformMatrix4fv(bp_model,  1, GL_FALSE, glm::value_ptr(model));
+        glUniformMatrix4fv(bp_normal, 1, GL_FALSE,
+                           glm::value_ptr(normalMatrix(view, model)));
+        glUniform3fv(bp_kd,   1, glm::value_ptr(kd));
+        glUniform1f (bp_phong, exp);
+        mesh.draw();
     };
-    double timeDiff = 0.0, startFrameTime = 0.0, endFrameTime = 0.0;
 
-    // ===================== RENDER LOOP =====================
+    // Render loop
+    double prevTime = glfwGetTime();
+
     while (!glfwWindowShouldClose(window))
     {
-      endFrameTime = glfwGetTime();
-      timeDiff = endFrameTime - startFrameTime;
-      startFrameTime = glfwGetTime();
+        const double now       = glfwGetTime();
+        const double deltaTime = now - prevTime;
+        prevTime = now;
 
-      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-      glm::mat4 M_view = glm::lookAt(m_pos, m_pos - m_W, m_V);
+        // FPS on T key
+        if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS)
+            std::cout << "fps: " << 1.0 / deltaTime << '\n';
 
-      // ---- Lambertian pass ----
-      shader_lamb.activate();
-      glUniformMatrix4fv(l_proj,  1, GL_FALSE, glm::value_ptr(perspMat));
-      glUniformMatrix4fv(l_view,  1, GL_FALSE, glm::value_ptr(M_view));
-      glUniform4fv(l_light, 1, glm::value_ptr(lightPosWorld));
+        camera.processInput(window, deltaTime);
 
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-      float t = glfwGetTime();
+        const glm::mat4 M_view = camera.viewMatrix();
 
+        // ── Lambertian pass ──────────────────────────────────────────────────
+        shader_lamb.activate();
+        glUniformMatrix4fv(l_proj,  1, GL_FALSE, glm::value_ptr(perspMat));
+        glUniformMatrix4fv(l_view,  1, GL_FALSE, glm::value_ptr(M_view));
+        glUniform4fv(l_light, 1, glm::value_ptr(lightPosWorld));
 
-      shader_lamb.deactivate();
+        //Lambertian Models:
+        const glm::mat4 bunnyModel = glm::mat4(1.0f);
+        drawLamb(bunny, glm::vec3(0.6f, 0.5f, 0.4f), bunnyModel, M_view);
 
-      // ---- Blinn-Phong pass ----
-      shader_bp.activate();
-      glUniformMatrix4fv(bp_proj,  1, GL_FALSE, glm::value_ptr(perspMat));
-      glUniformMatrix4fv(bp_view,  1, GL_FALSE, glm::value_ptr(M_view));
-      glUniform4fv(bp_light, 1, glm::value_ptr(lightPosWorld));
+        shader_lamb.deactivate();
 
-      glActiveTexture(GL_TEXTURE0);
-      glBindTexture(GL_TEXTURE_2D, diffuseTexID);
+        // Blinn-Phong pass
+        shader_bp.activate();
+        glUniformMatrix4fv(bp_proj,  1, GL_FALSE, glm::value_ptr(perspMat));
+        glUniformMatrix4fv(bp_view,  1, GL_FALSE, glm::value_ptr(M_view));
+        glUniform4fv(bp_light, 1, glm::value_ptr(lightPosWorld));
 
-      glActiveTexture(GL_TEXTURE1);
-      glBindTexture(GL_TEXTURE_2D, specularTexID);
+        diffuseTex .bind(0);
+        specularTex.bind(1);
 
-      glUniform1i(bp_texUnit, 0);
+        //BP Models:
+        const glm::mat4 globeModel = glm::mat4(1.0f);
+        drawBP(globe, glm::vec3(1.0f), phongExp, globeModel, M_view);
 
-      glm::mat4 globeModel = glm::mat4(1.0f);
-      //boxModel = glm::scale(boxModel, glm::vec3(3.0f));
-      glm::mat4 globeNormal = glm::mat4(glm::transpose(glm::inverse(glm::mat3(M_view * globeModel))));
-      glUniformMatrix4fv(bp_model, 1, GL_FALSE, glm::value_ptr(globeModel));
-      glUniformMatrix4fv(bp_normal, 1, GL_FALSE, glm::value_ptr(globeNormal));
+        shader_bp.deactivate();
 
-      glBindVertexArray(texSphereVAO);
-      glDrawElements(GL_TRIANGLES, texSphereIndexCount, GL_UNSIGNED_INT, 0);
-      glBindVertexArray(0);
-
-      shader_bp.deactivate();
-
-      glfwSwapBuffers(window);
-      glfwPollEvents();
-
-      // Camera movement
-      float moveRatePerFrame = 0.001f;
-      float turnRatePerFrame = 0.0001f;
-      if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
-        m_pos = m_pos + -m_W * moveRatePerFrame;
-      else if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        m_pos = m_pos - m_U * moveRatePerFrame;
-      else if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
-        m_pos = m_pos + m_W * moveRatePerFrame;
-      else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        m_pos = m_pos + m_U * moveRatePerFrame;
-      else if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        m_pos = m_pos + m_V * moveRatePerFrame;
-      else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        m_pos = m_pos - m_V * moveRatePerFrame;
-
-      // Camera rotations
-      if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
-        glm::mat4 turn = glm::rotate(glm::mat4(1.0f), turnRatePerFrame, glm::vec3(0,1,0));
-        m_U = glm::vec3(turn * glm::vec4(m_U, 0.0f));
-        m_V = glm::vec3(turn * glm::vec4(m_V, 0.0f));
-        m_W = glm::vec3(turn * glm::vec4(m_W, 0.0f));
-      }
-      if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
-        glm::mat4 turn = glm::rotate(glm::mat4(1.0f), -turnRatePerFrame, glm::vec3(0,1,0));
-        m_U = glm::vec3(turn * glm::vec4(m_U, 0.0f));
-        m_V = glm::vec3(turn * glm::vec4(m_V, 0.0f));
-        m_W = glm::vec3(turn * glm::vec4(m_W, 0.0f));
-      }
-      if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
-        glm::mat4 turn = glm::rotate(glm::mat4(1.0f), turnRatePerFrame, m_U);
-        m_V = glm::vec3(turn * glm::vec4(m_V, 0.0f));
-        m_W = glm::vec3(turn * glm::vec4(m_W, 0.0f));
-      }
-      if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
-        glm::mat4 turn = glm::rotate(glm::mat4(1.0f), -turnRatePerFrame, m_U);
-        m_V = glm::vec3(turn * glm::vec4(m_V, 0.0f));
-        m_W = glm::vec3(turn * glm::vec4(m_W, 0.0f));
-      }
-
-
-      if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS)
-        std::cout << "fps: " << 1.0 / timeDiff << std::endl;
-      if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, 1);
+        glfwSwapBuffers(window);
+        glfwPollEvents();
     }
 
     glfwTerminate();
     return 0;
-};
+}
 

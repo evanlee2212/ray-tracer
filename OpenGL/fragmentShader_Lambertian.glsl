@@ -6,7 +6,6 @@ uniform sampler2D textureUnit;
 
 in vec3 normal;
 in vec3 lightDir;
-in vec2 tCoord;
 
 void main(void)
 {
@@ -16,6 +15,5 @@ void main(void)
     float val = max(0.0, dot(N, L));
     vec3 diffuseShading = diffuseComponent * val;
 
-    vec3 kdTexel = texture(tectureUnit, tCoord).rgb;
     fragmentColor = vec4(diffuseShading, 1.0);
 }
