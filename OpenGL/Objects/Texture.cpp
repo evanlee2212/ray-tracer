@@ -1,5 +1,5 @@
 #include "Texture.h"
-#include "../src/png++/png.hpp"
+#include "../../src/png++/png.hpp"
 
 #include <iostream>
 #include <vector>

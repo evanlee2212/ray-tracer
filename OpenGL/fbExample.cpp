@@ -11,47 +11,9 @@
 
 #include "GLSL.h"
 #include "Objects/Camera.h"
-#include "Objects/Light.h"
 #include "Objects/Sphere.h"
 #include "Objects/Trimesh.h"
 #include "Objects/Texture.h"
-
-struct ShaderLightUniforms {
-  static constexpr int MAX_LIGHTS = 8;
-
-  GLuint numLightsID               = 0;
-  GLuint posIDs      [MAX_LIGHTS]  = {};
-  GLuint intensityIDs[MAX_LIGHTS]  = {};
-  GLuint laIDs       [MAX_LIGHTS]  = {};
-
-  // Call once after shader.createProgram()
-  void init(sivelab::GLSLObject& shader, bool hasAmbient = true)
-  {
-    numLightsID = shader.createUniform("numLights");
-    for (int i = 0; i < MAX_LIGHTS; ++i) {
-      const std::string idx = std::to_string(i);
-      posIDs[i]       = shader.createUniform(("lightPosWorld[" + idx + "]").c_str());
-      intensityIDs[i] = shader.createUniform(("intensity[" + idx + "]").c_str());
-      if (hasAmbient)
-        laIDs[i]    = shader.createUniform(("la[" + idx + "]").c_str());
-    }
-  }
-
-  // Upload all lights; call while the shader is active
-  void upload(const std::vector<Light>& lights, bool hasAmbient = true) const
-  {
-    const int n = static_cast<int>(
-        std::min(lights.size(), static_cast<size_t>(MAX_LIGHTS)));
-    glUniform1i(numLightsID, n);
-
-    for (int i = 0; i < n; ++i) {
-      glUniform4fv(posIDs[i],       1, glm::value_ptr(lights[i].position));
-      glUniform3fv(intensityIDs[i], 1, glm::value_ptr(lights[i].intensity));
-      if (hasAmbient)
-        glUniform3fv(laIDs[i],    1, glm::value_ptr(lights[i].ambient));
-    }
-  }
-};
 
 static glm::mat4 normalMatrix(const glm::mat4& view, const glm::mat4& model)
 {
@@ -60,6 +22,7 @@ static glm::mat4 normalMatrix(const glm::mat4& view, const glm::mat4& model)
 
 int main()
 {
+    // GLFW + window
     if (!glfwInit()) { return -1; }
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
@@ -67,8 +30,8 @@ int main()
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
-    int   WIN_WIDTH = 1000;
-    float ASPECT    = 1.0f;
+    constexpr int   WIN_WIDTH = 1000;
+    constexpr float ASPECT    = 1.0f;
 
     GLFWwindow* window = glfwCreateWindow(WIN_WIDTH, WIN_WIDTH / ASPECT,
                                           "OpenGL Rasterizer", nullptr, nullptr);
@@ -86,7 +49,7 @@ int main()
         return -1;
     }
 
-    std::cout << "Renderer: " << glGetString(GL_RENDERER) << '\n';
+    std::cout << "Renderer: "               << glGetString(GL_RENDERER) << '\n';
     std::cout << "OpenGL version supported: "<< glGetString(GL_VERSION)  << '\n';
 
     glEnable(GL_DEPTH_TEST);
@@ -101,41 +64,29 @@ int main()
     const glm::mat4 perspMat = glm::perspective(glm::radians(45.0f),
                                                  ASPECT, 0.1f, 100.0f);
 
-    // ====== Lights ========
-    std::vector<Light> lights = {
-      Light(glm::vec3( 5.0f, 3.0f,  5.0f),    // warm key light
-            glm::vec3(1.0f, 0.95f, 0.85f),
-            glm::vec3(0.10f, 0.10f, 0.12f)),
+    // Scene objects
+    const glm::vec4 lightPosWorld(5.0f, 3.0f, 5.0f, 1.0f);
 
-      Light(glm::vec3(-4.0f, 1.0f, -3.0f),    // cool fill light
-            glm::vec3(0.3f,  0.4f,  0.6f),
-            glm::vec3(0.05f, 0.05f, 0.08f)),
-
-      Light(glm::vec3( 0.0f, 8.0f,  0.0f),    // top rim light
-            glm::vec3(0.5f,  0.5f,  0.5f),
-            glm::vec3(0.0f)),
-    };
-
-    // ===== Objects ======
     // Globe sphere (textured, Blinn-Phong)
     Sphere globe(glm::vec3(0, 0, -10), 2.0f, 40, 40);
 
     // Bunny mesh (Lambertian)
     TriMesh bunny("../trilist.dat");
 
-    // ====== Textures =========
-    Texture diffuseTex("../textures/earth_daymap_2k.png");
+    // Textures
+    Texture diffuseTex ("../textures/earth_daymap_2k.png");
     Texture specularTex("../textures/earth_specular_map_2k.png");
 
-    // ======== Camera ===========
+    // Camera
     Camera camera(glm::vec3(0, 2, 5), 5.0f, 60.0f);
 
-    // ======== Shaders ==========
+    // Shaders
+
     // Lambertian
     sivelab::GLSLObject shader_lamb;
-    shader_lamb.addShader("Shaders/vertexShader_LambertianLights.glsl",
+    shader_lamb.addShader("vertexShader_PrepForPerFragment.glsl",
                           sivelab::GLSLObject::VERTEX_SHADER);
-    shader_lamb.addShader("Shaders/fragmentShader_LambertianLights.glsl",
+    shader_lamb.addShader("fragmentShader_Lambertian.glsl",
                           sivelab::GLSLObject::FRAGMENT_SHADER);
     shader_lamb.createProgram();
 
@@ -143,16 +94,14 @@ int main()
     const GLuint l_view   = shader_lamb.createUniform("viewMatrix");
     const GLuint l_model  = shader_lamb.createUniform("modelMatrix");
     const GLuint l_normal = shader_lamb.createUniform("normalMatrix");
+    const GLuint l_light  = shader_lamb.createUniform("lightPosWorld");
     const GLuint l_diff   = shader_lamb.createUniform("diffuseComponent");
-
-    ShaderLightUniforms lambLights;
-    lambLights.init(shader_lamb, false);
 
     // Blinn-Phong (textured)
     sivelab::GLSLObject shader_bp;
-    shader_bp.addShader("Shaders/vertexShader_BlinnPhongLights.glsl",
+    shader_bp.addShader("vertexShader_BlinnPhong.glsl",
                         sivelab::GLSLObject::VERTEX_SHADER);
-    shader_bp.addShader("Shaders/fragmentShader_BlinnPhongLights.glsl",
+    shader_bp.addShader("fragmentShader_BlinnPhong.glsl",
                         sivelab::GLSLObject::FRAGMENT_SHADER);
     shader_bp.createProgram();
 
@@ -160,6 +109,7 @@ int main()
     const GLuint bp_view      = shader_bp.createUniform("viewMatrix");
     const GLuint bp_model     = shader_bp.createUniform("modelMatrix");
     const GLuint bp_normal    = shader_bp.createUniform("normalMatrix");
+    const GLuint bp_light     = shader_bp.createUniform("lightPosWorld");
     const GLuint bp_intensity = shader_bp.createUniform("intensity");
     const GLuint bp_la        = shader_bp.createUniform("la");
     const GLuint bp_ka        = shader_bp.createUniform("ka");
@@ -168,9 +118,6 @@ int main()
     const GLuint bp_phong     = shader_bp.createUniform("phongExp");
     const GLuint bp_texUnit   = shader_bp.createUniform("textureUnit");
     const GLuint bp_specTex   = shader_bp.createUniform("specularTex");
-
-    ShaderLightUniforms bpLights;
-    bpLights.init(shader_bp, true);
 
     // Upload static uniforms once
     const glm::vec3 intensity(1.0f);
@@ -186,6 +133,76 @@ int main()
     glUniform1i (bp_texUnit,   0);
     glUniform1i (bp_specTex,   1);
     shader_bp.deactivate();
+
+    // -- FBO -------------------------------------------------
+    GLuint fboID, fboTextureID, fboRBOID;
+
+    // Generate FBO
+    glGenFramebuffers(1, &fboID);
+    glBindFramebuffer(GL_FRAMEBUFFER, fboID);
+
+    // Create color texture attachment
+    glGenTextures(1, &fboTextureID);
+    glBindTexture(GL_TEXTURE_2D, fboTextureID);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, fb_w, fb_h, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fboTextureID, 0);
+
+    // Create depth renderbuffer
+    glGenRenderbuffers(1, &fboRBOID);
+    glBindRenderbuffer(GL_RENDERBUFFER, fboRBOID);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, fb_w, fb_h);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, fboRBOID);
+
+    // Check FBO completeness
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+      std::cerr << "Framebuffer is not complete!" << std::endl;
+      exit(EXIT_FAILURE);
+    }
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    // SCREEN FILLING QUAD ---------------------------------------------
+    GLuint screenQuadVBO, screenQuadVAO;
+
+    // Screen quad vertices: (position xy, texcoord xy)
+    std::vector<float> screenQuadVertices = {
+      // positions        // texCoords
+      -1.0f,  1.0f,        0.0f, 1.0f,  // Top Left (V0)
+      -1.0f, -1.0f,        0.0f, 0.0f,  // Bottom Left (V1)
+      1.0f,  1.0f,        1.0f, 1.0f,  // Top Right (V2)
+      1.0f, -1.0f,        1.0f, 0.0f   // Bottom Right (V3)
+    };
+
+    glGenBuffers(1, &screenQuadVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, screenQuadVBO);
+    glBufferData(GL_ARRAY_BUFFER, screenQuadVertices.size() * sizeof(float), screenQuadVertices.data(), GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    glGenVertexArrays(1, &screenQuadVAO);
+    glBindVertexArray(screenQuadVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, screenQuadVBO);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (const GLvoid *)0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (const GLvoid *)(2 * sizeof(float)));
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    // =====================================================================
+    // GAMMA CORRECTION POST-PROCESSING SHADER
+    // =====================================================================
+    sivelab::GLSLObject gammaShader;
+    gammaShader.addShader("vertexShader_screenQuad.glsl", sivelab::GLSLObject::VERTEX_SHADER);
+    gammaShader.addShader("fragmentShader_gammaCorrection.glsl", sivelab::GLSLObject::FRAGMENT_SHADER);
+    gammaShader.createProgram();
+
+    GLuint gammaTextureID = gammaShader.createUniform("fboTexture");
+    GLuint gammaGammaID = gammaShader.createUniform("gamma");
+
+    float gammaValue = 2.2f;
 
     // Shader Functions
     auto drawLamb = [&](const auto& mesh, const glm::vec3& color,
@@ -209,7 +226,7 @@ int main()
         mesh.draw();
     };
 
-    // Render loop
+    // Render loop ============================================================================
     double prevTime = glfwGetTime();
 
     while (!glfwWindowShouldClose(window))
@@ -224,20 +241,22 @@ int main()
 
         camera.processInput(window, deltaTime);
 
-        // ===== Animating Lights ================
-        const float t = static_cast<float>(now);
-        lights[0].setPosition((glm::vec3(6.0f * std::cos(t * 0.5), 3.0f, 6.0f * std::cos(t * 0.5f))));
-
-
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         const glm::mat4 M_view = camera.viewMatrix();
 
-        // ==== Lambertian pass =========
+        // ---- Render scene to FBO
+        glEnable(GL_DEPTH_TEST);
+        glBindFramebuffer(GL_FRAMEBUFFER, fboID);  // <<<<<-----------
+        glViewport(0, 0, fb_w, fb_h);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        // ── Lambertian pass ──────────────────────────────────────────────────
         shader_lamb.activate();
         glUniformMatrix4fv(l_proj,  1, GL_FALSE, glm::value_ptr(perspMat));
         glUniformMatrix4fv(l_view,  1, GL_FALSE, glm::value_ptr(M_view));
-        lambLights.upload(lights, false);
+        glUniform4fv(l_light, 1, glm::value_ptr(lightPosWorld));
+
         //Lambertian Models:
         const glm::mat4 bunnyModel = glm::mat4(1.0f);
         drawLamb(bunny, glm::vec3(0.6f, 0.5f, 0.4f), bunnyModel, M_view);
@@ -248,8 +267,7 @@ int main()
         shader_bp.activate();
         glUniformMatrix4fv(bp_proj,  1, GL_FALSE, glm::value_ptr(perspMat));
         glUniformMatrix4fv(bp_view,  1, GL_FALSE, glm::value_ptr(M_view));
-
-        bpLights.upload(lights, true);
+        glUniform4fv(bp_light, 1, glm::value_ptr(lightPosWorld));
 
         diffuseTex .bind(0);
         specularTex.bind(1);
@@ -259,6 +277,37 @@ int main()
         drawBP(globe, glm::vec3(1.0f), phongExp, globeModel, M_view);
 
         shader_bp.deactivate();
+
+        // =====================================================================
+        // PASS 2: Render FBO texture to back buffer with gamma correction
+        // =====================================================================
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);  // Bind default framebuffer (back buffer)
+        glViewport(0, 0, fb_w, fb_h);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        // Disable depth testing for the post-processing pass to ensure the
+        // screen quad renders completely without depth conflicts with the
+        // depth buffer from Pass 1 scene rendering
+        glDisable(GL_DEPTH_TEST);
+
+        gammaShader.activate();
+
+        // Bind FBO color texture to texture unit 0
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, fboTextureID);
+        glUniform1i(gammaTextureID, 0);
+
+        // Set gamma value
+        glUniform1f(gammaGammaID, gammaValue);
+
+        // Draw screen-filling quad
+        glBindVertexArray(screenQuadVAO);
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+        glBindVertexArray(0);
+
+        glBindTexture(GL_TEXTURE_2D, 0);
+
+        gammaShader.deactivate();
 
         glfwSwapBuffers(window);
         glfwPollEvents();

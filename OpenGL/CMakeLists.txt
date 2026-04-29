@@ -3,16 +3,16 @@ include_directories(${CMAKE_SOURCE_DIR}/src)
 add_executable (glfwExample
   glfwExample.cpp 
   GLSL.cpp GLSL.h
-        Mesh.cpp
-        Mesh.h
-        Sphere.cpp
-        Sphere.h
-        Trimesh.cpp
-        Trimesh.h
-        Camera.cpp
-        Camera.h
-        Texture.cpp
-        Texture.h
+        Objects/Mesh.cpp
+        Objects/Mesh.h
+        Objects/Sphere.cpp
+        Objects/Sphere.h
+        Objects/Trimesh.cpp
+        Objects/Trimesh.h
+        Objects/Camera.cpp
+        Objects/Camera.h
+        Objects/Texture.cpp
+        Objects/Texture.h
 )
 
 target_link_libraries (glfwExample PRIVATE GLEW::GLEW)
@@ -42,10 +42,28 @@ target_link_libraries(silverLevel
 )
 
 add_executable( textureCube
-        textureCube.cpp
+        Objects/textureCube.cpp
         GLSL.cpp GLSL.h
 )
 
 target_link_libraries(textureCube
         PRIVATE GLEW::GLEW glfw OpenGL::GL PNG::PNG ZLIB::ZLIB
 )
+
+add_executable(fbExample fbExample.cpp
+            GLSL.cpp GLSL.h
+        Objects/Mesh.cpp
+        Objects/Mesh.h
+        Objects/Sphere.cpp
+        Objects/Sphere.h
+        Objects/Trimesh.cpp
+        Objects/Trimesh.h
+        Objects/Camera.cpp
+        Objects/Camera.h
+        Objects/Texture.cpp
+        Objects/Texture.h
+        Objects/Light.h
+)
+
+target_link_libraries(fbExample
+        PRIVATE GLEW::GLEW glfw OpenGL::GL PNG::PNG ZLIB::ZLIB)

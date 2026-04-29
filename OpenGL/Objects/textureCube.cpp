@@ -12,9 +12,9 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
-#include "../src/png++/png.hpp"
+#include "../../src/png++/png.hpp"
 
-#include "GLSL.h"
+#include "../GLSL.h"
 
 int CheckGLErrors(const char *s)
 {
