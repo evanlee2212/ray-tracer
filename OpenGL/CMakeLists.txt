@@ -13,6 +13,8 @@ add_executable (glfwExample
         Objects/Camera.h
         Objects/Texture.cpp
         Objects/Texture.h
+        Shadows/Shadowmap.cpp
+        Shadows/Shadowmap.h
 )
 
 target_link_libraries (glfwExample PRIVATE GLEW::GLEW)
@@ -63,6 +65,8 @@ add_executable(fbExample fbExample.cpp
         Objects/Texture.cpp
         Objects/Texture.h
         Objects/Light.h
+        Shadows/Shadowmap.cpp
+        Shadows/Shadowmap.h
 )
 
 target_link_libraries(fbExample

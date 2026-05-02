@@ -10,30 +10,26 @@ uniform mat4 modelMatrix;
 uniform mat4 normalMatrix;
 
 #define MAX_LIGHTS 8
-uniform int numLights;
+uniform int  numLights;
 uniform vec4 lightPosWorld[MAX_LIGHTS];
 
+// One light-space matrix per shadow-casting light
+uniform mat4 lightSpaceMatrix;
+
 out vec3 fragNormal;
-out vec3 fragPos;
+out vec3 fragPos;        // view-space
 out vec2 texCoord;
+out vec4 fragPosLightSpace;  // for shadow lookup
 
-out vec3 lightDir[MAX_LIGHTS];
-out vec3 halfVec[MAX_LIGHTS];
-
-void main(void)
+void main()
 {
-    vec4 pos      = viewMatrix * modelMatrix * vec4(in_Position, 1.0);
-    vec3 viewDir  = normalize(-pos.xyz);
+    vec4 worldPos = modelMatrix * vec4(in_Position, 1.0);
+    vec4 pos      = viewMatrix  * worldPos;
 
-    fragNormal = vec3(normalMatrix * vec4(in_Normal, 0.0));
-    fragPos    = pos.xyz;
-    texCoord   = in_TexCoord;
-
-    for (int i = 0; i < numLights; i++) {
-        vec3 lp      = vec3(viewMatrix * lightPosWorld[i]);
-        lightDir[i]  = normalize(lp - pos.xyz);
-        halfVec[i]   = normalize(lightDir[i] + viewDir);
-    }
+    fragNormal       = vec3(normalMatrix * vec4(in_Normal, 0.0));
+    fragPos          = pos.xyz;
+    texCoord         = in_TexCoord;
+    fragPosLightSpace = lightSpaceMatrix * worldPos;
 
     gl_Position = projMatrix * pos;
 }
