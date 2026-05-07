@@ -44,7 +44,7 @@ target_link_libraries(silverLevel
 )
 
 add_executable( textureCube
-        Objects/textureCube.cpp
+        textureCube.cpp
         GLSL.cpp GLSL.h
 )
 
@@ -70,4 +70,24 @@ add_executable(fbExample fbExample.cpp
 )
 
 target_link_libraries(fbExample
+        PRIVATE GLEW::GLEW glfw OpenGL::GL PNG::PNG ZLIB::ZLIB)
+
+add_executable (finalRender
+        finalRender.cpp
+        GLSL.cpp GLSL.h
+        Objects/Mesh.cpp
+        Objects/Mesh.h
+        Objects/Sphere.cpp
+        Objects/Sphere.h
+        Objects/Trimesh.cpp
+        Objects/Trimesh.h
+        Objects/Camera.cpp
+        Objects/Camera.h
+        Objects/Texture.cpp
+        Objects/Texture.h
+        Shadows/Shadowmap.cpp
+        Shadows/Shadowmap.h
+)
+
+target_link_libraries(finalRender
         PRIVATE GLEW::GLEW glfw OpenGL::GL PNG::PNG ZLIB::ZLIB)

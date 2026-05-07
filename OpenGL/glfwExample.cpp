@@ -261,6 +261,7 @@ int main()
         glUniformMatrix4fv(d_lightSpace, 1, GL_FALSE, glm::value_ptr(lightSpaceMat));
         drawDepth(bunny, bunnyModel);
         drawDepth(globe, globeModel);
+        drawDepth(ground, groundModel);
         shader_depth.deactivate();
 
         glCullFace(GL_BACK);
