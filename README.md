@@ -4,6 +4,10 @@ A CPU ray tracer supporting perspective cameras, triangle and sphere primitives,
 
 Also includes an OpenGL rasterizer for real-time interactive scene viewing.
 
+<img width="253" height="252" alt="image" src="https://github.com/user-attachments/assets/ac4da7ec-aa0f-4f7e-b177-95999ab4eb0d" />
+<img width="197" height="199" alt="image" src="https://github.com/user-attachments/assets/248ca5a4-0223-45d4-9ff4-bce7339f85d6" />
+
+
 ---
 
 ## Dependencies
@@ -136,6 +140,9 @@ Supported types:
 ---
 
 ### OpenGL Rasterizer (rasterizer.exe)
+
+<img width="500" height="500" alt="image" src="https://github.com/user-attachments/assets/f3c2bf11-4384-4cc3-be88-6291233e8c4f" />
+
 
 The rasterizer provides a real-time interactive view of your scene using OpenGL.
 
